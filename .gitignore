@@ -44,3 +44,7 @@ Thumbs.db
 Desktop.ini
 *.tmp
 *.temp
+
+# Propose
+perpustakaan/target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst
+/home/nakosawa/Praktikum-pplbo/perpustakaan/target/maven-status/maven-compiler-plugin/compile/default-compile/inputFiles.lst
