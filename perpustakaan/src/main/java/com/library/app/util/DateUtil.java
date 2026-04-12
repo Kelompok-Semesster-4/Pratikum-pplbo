@@ -22,7 +22,7 @@ public final class DateUtil {
         return dateTime == null ? "-" : dateTime.format(DATE_TIME_FORMATTER);
     }
 
-    public static boolean isLoanLate(LocalDate dueDate, LocalDate returnDate) {
+    public static boolean isOverdue(LocalDate dueDate, LocalDate returnDate) {
         if (returnDate == null) {
             return false;
         }
