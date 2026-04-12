@@ -6,6 +6,7 @@ import com.library.app.model.enums.LoanStatus;
 
 import java.math.BigDecimal;
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -17,8 +18,8 @@ public class LoanDAO {
              PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             statement.setLong(1, loan.getMemberId());
             statement.setLong(2, loan.getCopyId());
-            statement.setDate(3, Date.valueOf(loan.getLoanDate()));
-            statement.setDate(4, Date.valueOf(loan.getDueDate()));
+            statement.setObject(3, loan.getLoanDate());
+            statement.setObject(4, loan.getDueDate());
             statement.setBigDecimal(5, loan.getFineAmount());
             statement.setString(6, loan.getStatus().name());
             statement.executeUpdate();
@@ -129,15 +130,11 @@ public class LoanDAO {
         loan.setId(resultSet.getLong("id"));
         loan.setMemberId(resultSet.getLong("member_id"));
         loan.setCopyId(resultSet.getLong("copy_id"));
-        loan.setMemberCode(resultSet.getString("member_code"));
-        loan.setMemberName(resultSet.getString("member_name"));
-        loan.setCopyCode(resultSet.getString("copy_code"));
-        loan.setBookTitle(resultSet.getString("book_title"));
-        loan.setLoanDate(resultSet.getDate("loan_date").toLocalDate());
-        loan.setDueDate(resultSet.getDate("due_date").toLocalDate());
-        Date returnDate = resultSet.getDate("return_date");
+        loan.setLoanDate(resultSet.getObject("loan_date", LocalDate.class));
+        loan.setDueDate(resultSet.getObject("due_date", LocalDate.class));
+        LocalDate returnDate = resultSet.getObject("return_date", LocalDate.class);
         if (returnDate != null) {
-            loan.setReturnDate(returnDate.toLocalDate());
+            loan.setReturnDate(returnDate);
         }
         loan.setFineAmount(resultSet.getBigDecimal("fine_amount"));
         loan.setStatus(LoanStatus.valueOf(resultSet.getString("status")));
