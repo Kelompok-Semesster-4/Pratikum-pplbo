@@ -1,4 +1,4 @@
-package com.library.app.ui.fx;
+package com.library.app.ui.panel;
 
 import com.library.app.model.OverdueLoanReportItem;
 import com.library.app.model.ReportSummary;
@@ -45,7 +45,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.function.Supplier;
 
-public class ReportSectionView {
+public class ReportPanel {
    private static final int MONTH_RANGE = 7;
    private static final int OVERDUE_LIMIT = 12;
    private static final Locale ID_LOCALE = Locale.forLanguageTag("id-ID");
@@ -64,7 +64,7 @@ public class ReportSectionView {
    private TableView<OverdueLoanReportItem> overdueTable;
    private Button exportButton;
 
-   public ReportSectionView(DashboardService dashboardService) {
+   public ReportPanel(DashboardService dashboardService) {
       this.dashboardService = dashboardService;
    }
 
@@ -88,7 +88,7 @@ public class ReportSectionView {
       Region spacer = new Region();
       HBox.setHgrow(spacer, Priority.ALWAYS);
 
-      exportButton = new Button("↓ Ekspor Laporan");
+      exportButton = new Button("\u2193 Ekspor Laporan");
       exportButton.getStyleClass().add("report-export-button");
       exportButton.setOnAction(event -> onExportReport());
 
@@ -144,10 +144,10 @@ public class ReportSectionView {
       cards.setFillHeight(true);
 
       cards.getChildren().addAll(
-            createStatCard("📖", "icon-blue", "Total Peminjaman"),
-            createStatCard("✓", "icon-green", "Dikembalikan"),
-            createStatCard("⏰", "icon-orange", "Terlambat"),
-            createStatCard("¤", "icon-sand", "Total Denda"));
+            createStatCard("\uD83D\uDCD6", "icon-blue", "Total Peminjaman"),
+            createStatCard("\u2713", "icon-green", "Dikembalikan"),
+            createStatCard("\u23F0", "icon-orange", "Terlambat"),
+            createStatCard("\u00A4", "icon-sand", "Total Denda"));
 
       for (Node node : cards.getChildren()) {
          HBox.setHgrow(node, Priority.ALWAYS);
@@ -243,7 +243,7 @@ public class ReportSectionView {
    private Node createLegendChip(String text, String colorClass) {
       HBox chip = new HBox(5);
       chip.setAlignment(Pos.CENTER_LEFT);
-      Label dot = new Label("●");
+      Label dot = new Label("\u25CF");
       dot.getStyleClass().addAll("legend-dot", colorClass);
       Label label = new Label(text);
       label.getStyleClass().add("legend-text");
