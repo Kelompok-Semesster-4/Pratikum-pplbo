@@ -5,10 +5,24 @@ import com.library.app.model.Visit;
 import com.library.app.model.enums.VisitType;
 
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 public class VisitDAO {
+    public boolean existsMemberVisitToday(long memberId) {
+        String sql = "SELECT COUNT(*) FROM visits WHERE member_id = ? AND visit_date = CURDATE() AND visit_type = 'MEMBER'";
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setLong(1, memberId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                resultSet.next();
+                return resultSet.getInt(1) > 0;
+            }
+        } catch (SQLException exception) {
+            throw new RuntimeException("Gagal memeriksa kunjungan hari ini.", exception);
+        }
+    }
 
     public void save(Visit visit) {
         String sql = "INSERT INTO visits(member_id, visitor_name, visitor_identifier, visit_type, institution, purpose, visit_date) " +
@@ -47,6 +61,17 @@ public class VisitDAO {
             return visits;
         } catch (SQLException exception) {
             throw new RuntimeException("Gagal mengambil data kunjungan.", exception);
+        }
+    }
+
+    public int countToday() {
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement("SELECT COUNT(*) FROM visits WHERE visit_date = CURDATE()");
+             ResultSet resultSet = statement.executeQuery()) {
+            resultSet.next();
+            return resultSet.getInt(1);
+        } catch (SQLException exception) {
+            throw new RuntimeException("Gagal menghitung kunjungan hari ini.", exception);
         }
     }
 
