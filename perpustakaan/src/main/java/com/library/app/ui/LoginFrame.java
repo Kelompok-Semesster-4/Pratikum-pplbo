@@ -6,6 +6,9 @@ import com.library.app.service.AuthService;
 import com.library.app.session.UserSession;
 import com.library.app.util.UiUtil;
 
+import javafx.application.Platform;
+import javafx.stage.Stage;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -51,13 +54,37 @@ public class LoginFrame extends JFrame {
          User user = authService.login(usernameField.getText(), new String(passwordField.getPassword()));
          UserSession session = new UserSession(user);
          if (user.hasRole(Role.ADMIN)) {
-            new AdminFrame(session).setVisible(true);
+            openAdminFxDashboard(session);
          } else {
             new KioskFrame(session).setVisible(true);
          }
          dispose();
       } catch (Exception exception) {
          UiUtil.showError(this, exception.getMessage());
+      }
+   }
+
+   private void openAdminFxDashboard(UserSession session) {
+      try {
+         try {
+            Platform.startup(() -> {
+            });
+         } catch (IllegalStateException ignored) {
+            // JavaFX runtime already started.
+         }
+
+         Platform.runLater(() -> {
+            try {
+               Class<?> dashboardClass = Class.forName("com.library.app.ui.AdminDashboardFxApp");
+               Object dashboardApp = dashboardClass.getDeclaredConstructor().newInstance();
+               dashboardClass.getDeclaredMethod("showDashboard", Stage.class)
+                     .invoke(dashboardApp, new Stage());
+            } catch (Exception exception) {
+               throw new RuntimeException("Gagal membuka dashboard admin JavaFX.", exception);
+            }
+         });
+      } catch (Exception exception) {
+         UiUtil.showError(this, "Gagal membuka dashboard admin JavaFX: " + exception.getMessage());
       }
    }
 }
