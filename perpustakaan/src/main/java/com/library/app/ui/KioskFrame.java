@@ -3,6 +3,7 @@ package com.library.app.ui;
 import com.library.app.service.VisitService;
 import com.library.app.session.UserSession;
 import javafx.application.Platform;
+import javafx.scene.Group;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
@@ -386,14 +387,13 @@ public class KioskFrame {
    }
 
    private Node createVisitIcon(Color color) {
-      Pane pane = new Pane();
-      pane.setPrefSize(24, 24);
-      pane.getChildren().addAll(
+      Group group = new Group();
+      group.getChildren().addAll(
             iconPath("M9 8A3 3 0 1 1 15 8A3 3 0 0 1 9 8", color, 2.0),
             iconPath("M4.8 19A5.2 5.2 0 0 1 12.2 14.4", color, 2.0),
             iconPath("M14.2 15.8L16.3 17.9L20 14", color, 2.0)
       );
-      return pane;
+      return group;
    }
 
    private Node createSearchIcon(Color color) {
