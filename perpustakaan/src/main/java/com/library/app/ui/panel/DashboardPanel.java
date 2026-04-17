@@ -133,7 +133,10 @@ class AdminDashboardFxApp extends Application {
         root.setLeft(createSidebar());
         root.setCenter(createContent(summary, visitsPerMonth, loanTrend, recentLoans, todayVisits, adminIdentity));
 
-        Scene scene = new Scene(root, 1366, 768);
+        StackPane sceneRoot = new StackPane(root);
+        sceneRoot.getStyleClass().add("app-shell");
+
+        Scene scene = new Scene(sceneRoot, 1366, 768);
         String stylesheet = getClass().getResource("/styles/dashboard.css") == null
                 ? null
                 : getClass().getResource("/styles/dashboard.css").toExternalForm();
