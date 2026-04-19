@@ -7,6 +7,8 @@ import com.library.app.model.enums.Role;
 import com.library.app.util.PasswordUtil;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -16,12 +18,13 @@ public final class DatabaseInitializer {
 
     public static void initialize() {
         createTables();
+        migrateTables();
         seedDefaultUsers();
     }
 
     private static void createTables() {
         try (Connection connection = DBConnection.getConnection();
-                Statement statement = connection.createStatement()) {
+             Statement statement = connection.createStatement()) {
 
             statement.executeUpdate("""
                     CREATE TABLE IF NOT EXISTS users (
@@ -104,8 +107,13 @@ public final class DatabaseInitializer {
                         id BIGINT PRIMARY KEY AUTO_INCREMENT,
                         member_id BIGINT NULL,
                         sender_name VARCHAR(100) NOT NULL,
+                        subject VARCHAR(150) NULL,
+                        rating INT NOT NULL DEFAULT 0,
                         message TEXT NOT NULL,
+                        status VARCHAR(20) NOT NULL DEFAULT 'NEW',
+                        response_note TEXT NULL,
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        responded_at TIMESTAMP NULL,
                         FOREIGN KEY (member_id) REFERENCES members(id)
                     )
                     """);
@@ -117,6 +125,9 @@ public final class DatabaseInitializer {
                         requester_name VARCHAR(100) NOT NULL,
                         title VARCHAR(200) NOT NULL,
                         author VARCHAR(150),
+                        publisher VARCHAR(150),
+                        publication_year INT NULL,
+                        isbn VARCHAR(30) NULL,
                         note TEXT,
                         status VARCHAR(20) NOT NULL,
                         response_note TEXT,
@@ -143,6 +154,49 @@ public final class DatabaseInitializer {
 
         } catch (SQLException exception) {
             throw new IllegalStateException("Gagal membuat tabel database.", exception);
+        }
+    }
+
+    private static void migrateTables() {
+        try (Connection connection = DBConnection.getConnection()) {
+            ensureColumnExists(connection, "feedbacks", "subject", "ALTER TABLE feedbacks ADD COLUMN subject VARCHAR(150) NULL AFTER sender_name");
+            ensureColumnExists(connection, "feedbacks", "rating", "ALTER TABLE feedbacks ADD COLUMN rating INT NOT NULL DEFAULT 0 AFTER subject");
+            ensureColumnExists(connection, "feedbacks", "status", "ALTER TABLE feedbacks ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'NEW' AFTER message");
+            ensureColumnExists(connection, "feedbacks", "response_note", "ALTER TABLE feedbacks ADD COLUMN response_note TEXT NULL AFTER status");
+            ensureColumnExists(connection, "feedbacks", "responded_at", "ALTER TABLE feedbacks ADD COLUMN responded_at TIMESTAMP NULL AFTER created_at");
+            ensureColumnExists(connection, "procurement_requests", "publisher", "ALTER TABLE procurement_requests ADD COLUMN publisher VARCHAR(150) NULL AFTER author");
+            ensureColumnExists(connection, "procurement_requests", "publication_year", "ALTER TABLE procurement_requests ADD COLUMN publication_year INT NULL AFTER publisher");
+            ensureColumnExists(connection, "procurement_requests", "isbn", "ALTER TABLE procurement_requests ADD COLUMN isbn VARCHAR(30) NULL AFTER publication_year");
+        } catch (SQLException exception) {
+            throw new IllegalStateException("Gagal memperbarui struktur tabel database.", exception);
+        }
+    }
+
+    private static void ensureColumnExists(Connection connection, String tableName, String columnName, String alterSql)
+            throws SQLException {
+        if (columnExists(connection, tableName, columnName)) {
+            return;
+        }
+        try (Statement statement = connection.createStatement()) {
+            statement.executeUpdate(alterSql);
+        }
+    }
+
+    private static boolean columnExists(Connection connection, String tableName, String columnName) throws SQLException {
+        String sql = """
+                SELECT COUNT(*)
+                FROM information_schema.COLUMNS
+                WHERE TABLE_SCHEMA = DATABASE()
+                  AND TABLE_NAME = ?
+                  AND COLUMN_NAME = ?
+                """;
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, tableName);
+            statement.setString(2, columnName);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                resultSet.next();
+                return resultSet.getInt(1) > 0;
+            }
         }
     }
 

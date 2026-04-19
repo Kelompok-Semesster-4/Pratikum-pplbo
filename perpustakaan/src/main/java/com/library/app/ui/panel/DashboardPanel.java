@@ -123,6 +123,7 @@ class AdminDashboardFxApp extends Application {
     private StackPane contentSwitcher;
     private BookManagementPanel bookManagementSectionView;
     private ReportPanel reportSectionView;
+    private AdminFeedbackRequestPanel feedbackRequestSectionView;
 
     @Override
     public void start(Stage stage) {
@@ -608,6 +609,10 @@ class AdminDashboardFxApp extends Application {
             openFxSection("Manajemen Buku");
             return;
         }
+        if ("FX_FEEDBACK_REQUEST".equals(targetKey)) {
+            openFxSection("Feedback & Permintaan");
+            return;
+        }
         if ("SWING_RETURN".equals(targetKey)) {
             ManagementWindowLauncher.show("Manajemen Pengembalian", new ReturnPanel());
             return;
@@ -616,12 +621,8 @@ class AdminDashboardFxApp extends Application {
             ManagementWindowLauncher.show("Manajemen Peminjaman", new LoanPanel());
             return;
         }
-        if ("SWING_PROCUREMENT".equals(targetKey)) {
-            ManagementWindowLauncher.show("Manajemen Pengadaan", new ProcurementPanel(true));
-            return;
-        }
-        if ("SWING_FEEDBACK".equals(targetKey)) {
-            ManagementWindowLauncher.show("Manajemen Feedback", new FeedbackPanel(true));
+        if ("SWING_PROCUREMENT".equals(targetKey) || "SWING_FEEDBACK".equals(targetKey)) {
+            openFxSection("Feedback & Permintaan");
             return;
         }
         if ("SWING_MEMBER".equals(targetKey)) {
@@ -717,6 +718,18 @@ class AdminDashboardFxApp extends Application {
             reportSectionView = new ReportPanel(dashboardService);
         }
         contentSwitcher.getChildren().setAll(reportSectionView.create());
+    }
+
+    private void showFeedbackRequestSection() {
+        setTopbarTitle("Feedback & Permintaan");
+        if (contentSwitcher == null) {
+            return;
+        }
+        if (feedbackRequestSectionView == null) {
+            feedbackRequestSectionView = new AdminFeedbackRequestPanel();
+        }
+        contentSwitcher.getChildren().setAll(feedbackRequestSectionView.create());
+        feedbackRequestSectionView.refreshData();
     }
 
     private void showBookManagementSection() {
@@ -1235,6 +1248,10 @@ class AdminDashboardFxApp extends Application {
         }
         if ("Laporan".equals(menuName)) {
             showReportSection();
+            return;
+        }
+        if ("Feedback & Permintaan".equals(menuName)) {
+            showFeedbackRequestSection();
             return;
         }
         if ("Mode Kiosk".equals(menuName)) {

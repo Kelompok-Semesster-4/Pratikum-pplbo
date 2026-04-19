@@ -11,33 +11,88 @@ import java.util.List;
 
 public class ProcurementService {
     private final ProcurementRequestDAO requestDAO = new ProcurementRequestDAO();
-    private final MemberService memberService = new MemberService();
     private final NotificationService notificationService = new NotificationService();
 
-    public void submitRequest(String memberCode, String requesterName, String title, String author, String note) {
-        ValidationUtil.requireNotBlank(requesterName, "Nama pengaju wajib diisi.");
-        ValidationUtil.requireNotBlank(title, "Judul buku usulan wajib diisi.");
-
-        ProcurementRequest request = new ProcurementRequest();
-        if (memberCode != null && !memberCode.trim().isEmpty()) {
-            Member member = memberService.findByCode(memberCode.trim());
-            request.setMemberId(member.getId());
-        }
-        request.setRequesterName(requesterName.trim());
-        request.setTitle(title.trim());
-        request.setAuthor(author == null ? "" : author.trim());
-        request.setNote(note == null ? "" : note.trim());
-        request.setStatus(RequestStatus.PENDING);
-        request.setCreatedAt(LocalDateTime.now());
-        long requestId = requestDAO.save(request);
-        notificationService.createProcurementNotification(requestId, request.getRequesterName(), request.getTitle());
+    public ProcurementRequest registerRequest(String requesterName, String title, String author, String note) {
+        return registerRequest(null, requesterName, title, author, null, null, null, note);
     }
 
-    public List<ProcurementRequest> getAllRequests() {
+    public ProcurementRequest registerRequest(Long memberId,
+                                              String requesterName,
+                                              String title,
+                                              String author,
+                                              String publisher,
+                                              Integer publicationYear,
+                                              String isbn,
+                                              String note) {
+        ValidationUtil.requireNotBlank(requesterName, "Nama pemohon wajib diisi.");
+        ValidationUtil.requireNotBlank(title, "Judul buku wajib diisi.");
+        ValidationUtil.requireNotBlank(author, "Nama pengarang wajib diisi.");
+        ValidationUtil.requireNotBlank(note, "Alasan permintaan wajib diisi.");
+        if (publicationYear != null) {
+            ValidationUtil.requirePublicationYear(publicationYear);
+        }
+        validateIsbn(isbn);
+
+        ProcurementRequest request = new ProcurementRequest();
+        request.setMemberId(memberId);
+        request.setRequesterName(requesterName.trim());
+        request.setTitle(title.trim());
+        request.setAuthor(author.trim());
+        request.setPublisher(normalizeOptional(publisher));
+        request.setPublicationYear(publicationYear);
+        request.setIsbn(normalizeOptional(isbn));
+        request.setNote(note.trim());
+        request.setStatus(RequestStatus.PENDING);
+        request.setCreatedAt(LocalDateTime.now());
+        requestDAO.save(request);
+
+        notificationService.createProcurementNotification(request);
+        return request;
+    }
+
+    public List<ProcurementRequest> findAll() {
         return requestDAO.findAll();
     }
 
-    public void reviewRequest(long requestId, RequestStatus status, String responseNote) {
-        requestDAO.review(requestId, status, responseNote == null ? "" : responseNote.trim());
+    public List<ProcurementRequest> getAllRequests() {
+        return findAll();
+    }
+
+    public ProcurementRequest submitRequest(String memberCode,
+                                            String requesterName,
+                                            String title,
+                                            String author,
+                                            String note) {
+        Long memberId = null;
+        String resolvedRequesterName = requesterName;
+
+        if (memberCode != null && !memberCode.trim().isEmpty()) {
+            Member member = new MemberService().findByCode(memberCode.trim());
+            memberId = member.getId();
+            if (resolvedRequesterName == null || resolvedRequesterName.trim().isEmpty()) {
+                resolvedRequesterName = member.getName();
+            }
+        }
+
+        return registerRequest(memberId, resolvedRequesterName, title, author, null, null, null, note);
+    }
+
+    public void reviewRequest(Long requestId, RequestStatus status, String responseNote) {
+        requestDAO.reviewRequest(requestId, status, normalizeOptional(responseNote));
+    }
+
+    private String normalizeOptional(String value) {
+        return ValidationUtil.isBlank(value) ? null : value.trim();
+    }
+
+    private void validateIsbn(String isbn) {
+        if (ValidationUtil.isBlank(isbn)) {
+            return;
+        }
+        String normalized = isbn.replaceAll("[-\\s]", "");
+        if (!normalized.matches("\\d{10}|\\d{13}")) {
+            throw new IllegalArgumentException("ISBN harus 10 atau 13 digit.");
+        }
     }
 }
