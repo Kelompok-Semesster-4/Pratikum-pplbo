@@ -124,11 +124,3 @@
   -fx-font-size: 12.5px;
   -fx-font-weight: 600;
 }
-
-/* Kotak Info Akun Demo */
-.demo-box {
-  -fx-background-color: #f8fafc;
-  -fx-background-radius: 8;
-  -fx-border-color: #e2e8f0;
-  -fx-border-width: 1px;
-}

@@ -13,8 +13,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -47,6 +45,7 @@ public class KioskFrame {
       hostStage.setMinHeight(700);
       hostStage.setScene(createScene(hostStage));
       hostStage.show();
+      enforceKioskFullscreen(hostStage);
    }
 
    // Adapter untuk menjaga kompatibilitas pemanggilan lama dari LoginFrame Swing.
@@ -115,27 +114,33 @@ public class KioskFrame {
    }
 
    private Node createHeader(Stage hostStage) {
-      HBox topBar = new HBox(12);
+      StackPane topBar = new StackPane();
       topBar.getStyleClass().add("top-bar");
 
-      HBox brandArea = new HBox(8);
-      brandArea.setAlignment(Pos.CENTER_LEFT);
-      brandArea.getChildren().addAll(KioskIconFactory.createLibraryLogo(20), createBrandText());
+      HBox brandArea = new HBox(10);
+      brandArea.getStyleClass().add("brand-area");
+      brandArea.setAlignment(Pos.CENTER);
+      brandArea.setMouseTransparent(true);
+      brandArea.getChildren().addAll(KioskIconFactory.createLibraryLogo(24), createBrandText());
 
-      Region spacer = new Region();
-      HBox.setHgrow(spacer, Priority.ALWAYS);
-
-      Label statusChip = new Label("Sesi Aktif");
+      String sessionLabel = session != null ? "Sesi: " + session.getUsername() : "Sesi Aktif";
+      Label statusChip = new Label(sessionLabel);
       statusChip.getStyleClass().add("status-chip");
 
       Button logoutButton = new Button("Keluar");
       logoutButton.getStyleClass().add("logout-button");
-      logoutButton.setOnAction(event -> hostStage.close());
+      logoutButton.setOnAction(event -> handleLogout(hostStage));
 
       HBox actions = new HBox(10, statusChip, logoutButton);
       actions.setAlignment(Pos.CENTER_RIGHT);
 
-      topBar.getChildren().addAll(brandArea, spacer, actions);
+      HBox actionLayer = new HBox(actions);
+      actionLayer.setMaxWidth(Double.MAX_VALUE);
+      actionLayer.setAlignment(Pos.CENTER_RIGHT);
+
+      topBar.getChildren().addAll(actionLayer, brandArea);
+      StackPane.setAlignment(actionLayer, Pos.CENTER_RIGHT);
+      StackPane.setAlignment(brandArea, Pos.CENTER);
       return topBar;
    }
 
@@ -147,8 +152,25 @@ public class KioskFrame {
       brandSubtitle.getStyleClass().add("brand-subtitle");
 
       VBox brandText = new VBox(2, brandTitle, brandSubtitle);
-      brandText.setAlignment(Pos.CENTER_LEFT);
+      brandText.setAlignment(Pos.CENTER);
       return brandText;
+   }
+
+   private void enforceKioskFullscreen(Stage hostStage) {
+      hostStage.setMaximized(true);
+      hostStage.setFullScreenExitHint("Tekan ESC untuk keluar mode layar penuh");
+      hostStage.setFullScreen(true);
+
+      Platform.runLater(() -> {
+         if (!hostStage.isFullScreen()) {
+            hostStage.setFullScreen(true);
+         }
+      });
+   }
+
+   private void handleLogout(Stage hostStage) {
+      hostStage.setFullScreen(false);
+      new LoginFrame().showOn(hostStage);
    }
 
    private void showVisitContent() {

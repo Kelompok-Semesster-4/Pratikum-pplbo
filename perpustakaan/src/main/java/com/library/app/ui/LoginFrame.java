@@ -148,20 +148,8 @@ public class LoginFrame {
         userField.setOnAction(event -> loginAction.run());
         passField.setOnAction(event -> loginAction.run());
 
-        // Kotak Info Akun Demo
-        VBox demoBox = new VBox(5);
-        demoBox.getStyleClass().add("demo-box");
-        Label demoTitle = new Label("Akun Demo:");
-        demoTitle.setStyle("-fx-font-weight: bold; -fx-text-fill: #4B5563; -fx-font-size: 12px;");
-        Label demoAdmin = new Label("Admin: admin / admin123");
-        Label demoKiosk = new Label("Kiosk: kiosk / kiosk123");
-        demoAdmin.setStyle("-fx-text-fill: #6B7280; -fx-font-size: 12px;");
-        demoKiosk.setStyle("-fx-text-fill: #6B7280; -fx-font-size: 12px;");
-        demoBox.getChildren().addAll(demoTitle, demoAdmin, demoKiosk);
-        demoBox.setPadding(new Insets(15));
-
         rightPanel.getChildren().addAll(loginTitle, loginSubtitle, userLabel, userBox, passLabel, passBox, btnLogin,
-                statusLabel, demoBox);
+            statusLabel);
         return rightPanel;
     }
 

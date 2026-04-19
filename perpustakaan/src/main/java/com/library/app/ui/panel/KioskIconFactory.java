@@ -4,6 +4,7 @@ import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
+import javafx.geometry.Pos;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
@@ -48,7 +49,7 @@ public final class KioskIconFactory {
                 iconPath("M4.8 19A5.2 5.2 0 0 1 12.2 14.4", color, 2.0),
                 iconPath("M14.2 15.8L16.3 17.9L20 14", color, 2.0)
         );
-        return group;
+        return centeredIcon(group);
     }
 
     public static Node createSearchIcon(Color color) {
@@ -58,7 +59,7 @@ public final class KioskIconFactory {
                 iconPath("M11 4A7 7 0 1 1 11 18A7 7 0 0 1 11 4", color, 2.0),
                 iconPath("M16 16L20 20", color, 2.0)
         );
-        return pane;
+        return centeredIcon(pane);
     }
 
     public static Node createFeedbackIcon(Color color) {
@@ -69,7 +70,7 @@ public final class KioskIconFactory {
                 iconPath("M12 8.8V12.5", color, 2.0),
                 iconPath("M12 14.8H12.01", color, 2.3)
         );
-        return pane;
+        return centeredIcon(pane);
     }
 
     public static Node createRequestIcon(Color color) {
@@ -81,7 +82,16 @@ public final class KioskIconFactory {
                 iconPath("M12 11.5V15", color, 2.0),
                 iconPath("M9.9 13.7L12 15.8L14.1 13.7", color, 2.0)
         );
-        return pane;
+        return centeredIcon(pane);
+    }
+
+    private static Node centeredIcon(Node icon) {
+        StackPane wrapper = new StackPane(icon);
+        wrapper.setAlignment(Pos.CENTER);
+        wrapper.setMinSize(24, 24);
+        wrapper.setPrefSize(24, 24);
+        wrapper.setMaxSize(24, 24);
+        return wrapper;
     }
 
     private static SVGPath iconPath(String pathData, Color color, double strokeWidth) {

@@ -28,6 +28,11 @@ public class KioskVisitFxPanel {
 
         StackPane visitIconShell = new StackPane(visitIcon);
         visitIconShell.getStyleClass().add("visit-icon-shell");
+        visitIconShell.setAlignment(Pos.CENTER);
+        visitIconShell.setMinSize(46, 46);
+        visitIconShell.setPrefSize(46, 46);
+        visitIconShell.setMaxSize(46, 46);
+        StackPane.setAlignment(visitIcon, Pos.CENTER);
 
         Label title = new Label("Absen Kunjungan");
         title.getStyleClass().add("visit-title");

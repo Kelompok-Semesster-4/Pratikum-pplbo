@@ -92,6 +92,11 @@ public class KioskDashboardPanel {
 
         StackPane iconHolder = new StackPane(icon);
         iconHolder.getStyleClass().add("service-icon-holder");
+        iconHolder.setAlignment(Pos.CENTER);
+        iconHolder.setMinSize(58, 58);
+        iconHolder.setPrefSize(58, 58);
+        iconHolder.setMaxSize(58, 58);
+        StackPane.setAlignment(icon, Pos.CENTER);
 
         Label title = new Label(titleText);
         title.getStyleClass().add("service-title");
