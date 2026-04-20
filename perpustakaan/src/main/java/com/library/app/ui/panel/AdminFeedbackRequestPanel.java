@@ -56,7 +56,7 @@ public class AdminFeedbackRequestPanel {
 
     public Node create() {
         if (!initialized) {
-            root.setPadding(new Insets(4));
+            root.setPadding(Insets.EMPTY);
             root.setCenter(buildContent());
             initialized = true;
         }
@@ -93,14 +93,15 @@ public class AdminFeedbackRequestPanel {
     }
 
     private Node buildContent() {
-        VBox wrapper = new VBox(20);
+        VBox wrapper = new VBox(16);
+        wrapper.setPadding(Insets.EMPTY);
         wrapper.getChildren().addAll(buildHeader(), buildBodyArea());
         return wrapper;
     }
 
     private Node buildHeader() {
         VBox header = new VBox(8);
-        header.setPadding(new Insets(4, 0, 0, 0));
+        header.setPadding(Insets.EMPTY);
 
         Label title = new Label("Feedback & Permintaan");
         title.setStyle("-fx-font-size: 28px; -fx-font-weight: 800; -fx-text-fill: #0F172A;");
