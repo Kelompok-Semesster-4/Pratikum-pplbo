@@ -282,3 +282,58 @@
   -fx-shape: "";
   -fx-background-color: transparent;
 }
+
+.search-icon-shell {
+    -fx-background-color: transparent;
+    -fx-background-radius: 999;
+    -fx-min-width: 46;
+    -fx-min-height: 46;
+    -fx-max-width: 46;
+    -fx-max-height: 46;
+}
+
+.search-book-card {
+    -fx-background-color: white;
+    -fx-border-color: #e2e8f0;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+}
+
+.search-book-scroller {
+    -fx-background-color: transparent;
+    -fx-control-inner-background: transparent;
+}
+
+.book-card-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1e293b;
+}
+
+.book-card-subtitle {
+    -fx-font-size: 13px;
+    -fx-text-fill: #64748b;
+}
+
+.book-card-category {
+    -fx-background-color: #f1f5f9;
+    -fx-text-fill: #475569;
+    -fx-padding: 4 10 4 10;
+    -fx-background-radius: 12;
+    -fx-font-size: 12px;
+}
+
+.book-card-shelf {
+    -fx-text-fill: #94a3b8;
+    -fx-font-size: 13px;
+}
+
+.book-card-copies {
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+}
+
+.book-card-cover {
+    -fx-background-color: #f0fdfa;
+    -fx-background-radius: 4;
+}
