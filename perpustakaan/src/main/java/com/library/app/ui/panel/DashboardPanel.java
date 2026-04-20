@@ -25,6 +25,7 @@ import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -110,6 +111,13 @@ class AdminDashboardFxApp extends Application {
     private static final int MONTH_RANGE = 7;
     private static final int NOTIFICATION_LIMIT = 80;
     private static final Locale ID_LOCALE = Locale.forLanguageTag("id-ID");
+    private static final List<String> NOTIFICATION_FILTER_OPTIONS = List.of(
+            "Semua",
+            "Keterlambatan",
+            "Stok Buku",
+            "Pengadaan",
+            "Feedback",
+            "Lainnya");
 
     private final com.library.app.service.DashboardService dashboardService = new com.library.app.service.DashboardService();
     private final NotificationService notificationService = new NotificationService();
@@ -548,36 +556,33 @@ class AdminDashboardFxApp extends Application {
     }
 
     private Node createNotificationFilterRow() {
-        HBox row = new HBox(6);
+        HBox row = new HBox(8);
         row.setAlignment(Pos.CENTER_LEFT);
 
-        row.getChildren().addAll(
-                createNotificationFilterButton("Semua"),
-                createNotificationFilterButton("Keterlambatan"),
-                createNotificationFilterButton("Stok Buku"),
-                createNotificationFilterButton("Pengadaan"),
-                createNotificationFilterButton("Feedback"),
-                createNotificationFilterButton("Lainnya"));
-        return row;
-    }
+        Label filterLabel = new Label("Filter");
+        filterLabel.setStyle("-fx-font-size: 11px; -fx-font-weight: 700; -fx-text-fill: #5f6f86;");
 
-    private Button createNotificationFilterButton(String filterName) {
-        Button button = new Button(filterName);
-        boolean active = filterName.equalsIgnoreCase(activeNotificationFilter);
+        ComboBox<String> filterDropdown = new ComboBox<>();
+        filterDropdown.getItems().setAll(NOTIFICATION_FILTER_OPTIONS);
+        filterDropdown.setPrefWidth(170);
+        filterDropdown.setVisibleRowCount(NOTIFICATION_FILTER_OPTIONS.size());
+        filterDropdown.setStyle("-fx-background-color: #eef2f9; -fx-border-color: #dce4f1; " +
+                "-fx-background-radius: 999; -fx-border-radius: 999; -fx-font-size: 11px; " +
+                "-fx-font-weight: 700; -fx-text-fill: #5f6f86;");
 
-        String baseStyle = "-fx-background-radius: 999; -fx-padding: 4 10 4 10; -fx-font-size: 11px; " +
-                "-fx-font-weight: 700; -fx-cursor: hand;";
-        if (active) {
-            button.setStyle(baseStyle + " -fx-background-color: #2f61d6; -fx-text-fill: #ffffff;");
-        } else {
-            button.setStyle(baseStyle + " -fx-background-color: #eef2f9; -fx-text-fill: #5f6f86;");
+        String selectedFilter = activeNotificationFilter;
+        if (selectedFilter == null || !NOTIFICATION_FILTER_OPTIONS.contains(selectedFilter)) {
+            selectedFilter = "Semua";
         }
-
-        button.setOnAction(event -> {
-            activeNotificationFilter = filterName;
+        filterDropdown.setValue(selectedFilter);
+        filterDropdown.setOnAction(event -> {
+            String selectedValue = filterDropdown.getValue();
+            activeNotificationFilter = selectedValue == null || selectedValue.isBlank() ? "Semua" : selectedValue;
             showNotificationPopup();
         });
-        return button;
+
+        row.getChildren().addAll(filterLabel, filterDropdown);
+        return row;
     }
 
     private List<AppNotification> filterNotifications(List<AppNotification> notifications, String filter) {

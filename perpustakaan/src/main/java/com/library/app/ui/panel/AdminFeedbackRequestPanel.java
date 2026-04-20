@@ -22,6 +22,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 import java.time.LocalDateTime;
@@ -413,9 +414,15 @@ public class AdminFeedbackRequestPanel {
 
     private void renderRequestDetail() {
         detailContainer.getChildren().clear();
+        detailContainer.setAlignment(Pos.TOP_LEFT);
 
         if (selectedRequest == null) {
-            detailContainer.getChildren().add(createEmptyState("Pilih permintaan buku untuk melihat detailnya."));
+            Node emptyState = createEmptyState("Pilih permintaan buku untuk melihat detailnya.");
+            StackPane centeredState = new StackPane(emptyState);
+            centeredState.setAlignment(Pos.CENTER);
+            centeredState.setMaxWidth(Double.MAX_VALUE);
+            VBox.setVgrow(centeredState, Priority.ALWAYS);
+            detailContainer.getChildren().add(centeredState);
             return;
         }
 
