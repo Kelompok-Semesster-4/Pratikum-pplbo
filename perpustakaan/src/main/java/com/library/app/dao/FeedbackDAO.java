@@ -108,14 +108,7 @@ public class FeedbackDAO {
     }
 
     private FeedbackStatus parseStatus(String rawValue) {
-        if (rawValue == null || rawValue.isBlank()) {
-            return FeedbackStatus.NEW;
-        }
-        try {
-            return FeedbackStatus.valueOf(rawValue);
-        } catch (IllegalArgumentException ignored) {
-            return FeedbackStatus.NEW;
-        }
+        return FeedbackStatus.fromDbValue(rawValue);
     }
 
     private String safeStatus(FeedbackStatus status) {

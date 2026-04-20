@@ -191,34 +191,50 @@
   -fx-padding: 0 2 0 0;
 }
 
-.notification-popup-scroll > .viewport {
+.app-scroll {
+  -fx-background-color: transparent;
+  -fx-background: transparent;
+  -fx-border-color: transparent;
+  -fx-padding: 0 2 0 0;
+}
+
+.notification-popup-scroll > .viewport,
+.app-scroll > .viewport {
   -fx-background-color: transparent;
 }
 
-.notification-popup-scroll .scroll-bar:vertical {
+.notification-popup-scroll .scroll-bar:vertical,
+.app-scroll .scroll-bar:vertical {
   -fx-background-color: transparent;
   -fx-pref-width: 10;
   -fx-padding: 0 2 0 2;
 }
 
-.notification-popup-scroll .scroll-bar:vertical .track {
+.notification-popup-scroll .scroll-bar:vertical .track,
+.app-scroll .scroll-bar:vertical .track {
   -fx-background-color: #eef2f8;
   -fx-background-radius: 999;
 }
 
-.notification-popup-scroll .scroll-bar:vertical .thumb {
+.notification-popup-scroll .scroll-bar:vertical .thumb,
+.app-scroll .scroll-bar:vertical .thumb {
   -fx-background-color: #c7d2e5;
   -fx-background-radius: 999;
 }
 
-.notification-popup-scroll .scroll-bar:vertical .thumb:hover {
+.notification-popup-scroll .scroll-bar:vertical .thumb:hover,
+.app-scroll .scroll-bar:vertical .thumb:hover {
   -fx-background-color: #b5c3db;
 }
 
 .notification-popup-scroll .scroll-bar:vertical .increment-button,
 .notification-popup-scroll .scroll-bar:vertical .decrement-button,
 .notification-popup-scroll .scroll-bar:vertical .increment-arrow,
-.notification-popup-scroll .scroll-bar:vertical .decrement-arrow {
+.notification-popup-scroll .scroll-bar:vertical .decrement-arrow,
+.app-scroll .scroll-bar:vertical .increment-button,
+.app-scroll .scroll-bar:vertical .decrement-button,
+.app-scroll .scroll-bar:vertical .increment-arrow,
+.app-scroll .scroll-bar:vertical .decrement-arrow {
   -fx-padding: 0;
   -fx-shape: "";
   -fx-background-color: transparent;

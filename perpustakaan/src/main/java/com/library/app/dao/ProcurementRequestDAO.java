@@ -112,7 +112,7 @@ public class ProcurementRequestDAO {
                 (Integer) resultSet.getObject("publication_year"),
                 resultSet.getString("isbn"),
                 resultSet.getString("note"),
-                RequestStatus.valueOf(resultSet.getString("status")),
+                RequestStatus.fromDbValue(resultSet.getString("status")),
                 resultSet.getString("response_note"),
                 resultSet.getTimestamp("created_at").toLocalDateTime(),
                 respondedAt == null ? null : respondedAt.toLocalDateTime()

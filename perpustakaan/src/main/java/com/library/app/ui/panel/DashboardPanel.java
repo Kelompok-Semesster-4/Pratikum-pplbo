@@ -289,7 +289,7 @@ class AdminDashboardFxApp extends Application {
         showDashboardSection(summary, visitsPerMonth, loanTrend, recentLoans, todayVisits);
 
         ScrollPane scrollPane = new ScrollPane(content);
-        scrollPane.getStyleClass().add("content-scroll");
+        scrollPane.getStyleClass().addAll("content-scroll", "app-scroll");
         scrollPane.setFitToWidth(true);
         scrollPane.setPannable(true);
 

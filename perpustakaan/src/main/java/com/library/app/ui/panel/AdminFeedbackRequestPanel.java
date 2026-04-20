@@ -132,7 +132,10 @@ public class AdminFeedbackRequestPanel {
         sectionSubtitle.setWrapText(true);
 
         ScrollPane scrollPane = new ScrollPane(listContainer);
+        scrollPane.getStyleClass().add("app-scroll");
         scrollPane.setFitToWidth(true);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         scrollPane.setStyle("-fx-background-color: transparent; -fx-background-insets: 0;");
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
 

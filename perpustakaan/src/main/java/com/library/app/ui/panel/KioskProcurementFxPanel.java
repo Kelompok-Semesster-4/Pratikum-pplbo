@@ -41,9 +41,11 @@ public class KioskProcurementFxPanel {
         root.setPadding(new Insets(8, 12, 8, 12));
 
         ScrollPane scrollPane = new ScrollPane(buildFormCard(onBack));
+        scrollPane.getStyleClass().add("app-scroll");
         scrollPane.setFitToWidth(true);
         scrollPane.setStyle("-fx-background-color: transparent; -fx-background-insets: 0; -fx-padding: 0;");
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
 
         root.setCenter(scrollPane);
         return root;
