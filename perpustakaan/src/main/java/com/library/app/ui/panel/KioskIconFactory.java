@@ -73,6 +73,15 @@ public final class KioskIconFactory {
         return centeredIcon(pane);
     }
 
+    public static Node createBookIcon(Color color) {
+        Pane pane = new Pane();
+        pane.setPrefSize(24, 24);
+        pane.getChildren().addAll(
+            iconPath("M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z", color, 2.0)
+        );
+        return centeredIcon(pane);
+    }
+
     public static Node createRequestIcon(Color color) {
         Pane pane = new Pane();
         pane.setPrefSize(24, 24);
