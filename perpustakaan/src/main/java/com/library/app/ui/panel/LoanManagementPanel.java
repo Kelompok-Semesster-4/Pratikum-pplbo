@@ -1,12 +1,12 @@
 package com.library.app.ui.panel;
 
-import com.library.app.ui.util.FxFeedback;
 import com.library.app.dao.LoanDAO;
 import com.library.app.model.Loan;
 import com.library.app.model.Visit;
 import com.library.app.model.enums.VisitType;
 import com.library.app.service.LoanService;
 import com.library.app.service.VisitService;
+import com.library.app.ui.util.FxFeedback;
 import com.library.app.util.DateUtil;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleStringProperty;
@@ -16,7 +16,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
@@ -28,7 +27,6 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.stage.Window;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -37,6 +35,7 @@ import java.util.List;
 import java.util.Locale;
 
 public class LoanManagementPanel {
+
     private enum LoanViewMode {
         ACTIVE,
         RETURNED,
@@ -205,21 +204,30 @@ public class LoanManagementPanel {
 
         if (mode == LoanViewMode.ACTIVE) {
             activeTabButton.getStyleClass().add("active");
+            primaryActionButton.setVisible(true);
+            primaryActionButton.setManaged(true);
             primaryActionButton.setText("+ Catat Peminjaman");
             tableTitleLabel.setText("Daftar Peminjaman Aktif");
             rebuildLoanTableColumns();
+
         } else if (mode == LoanViewMode.RETURNED) {
             returnedTabButton.getStyleClass().add("active");
-            primaryActionButton.setText("Catat Pengembalian");
+            primaryActionButton.setVisible(false);
+            primaryActionButton.setManaged(false);
             tableTitleLabel.setText("Riwayat Pengembalian");
             rebuildLoanTableColumns();
+
         } else if (mode == LoanViewMode.MEMBER_VISIT) {
             memberVisitTabButton.getStyleClass().add("active");
-            primaryActionButton.setText("Catat Kunjungan");
+            primaryActionButton.setVisible(false);
+            primaryActionButton.setManaged(false);
             tableTitleLabel.setText("Riwayat Kunjungan Mahasiswa");
             rebuildVisitTableColumns();
+
         } else {
             guestVisitTabButton.getStyleClass().add("active");
+            primaryActionButton.setVisible(true);
+            primaryActionButton.setManaged(true);
             primaryActionButton.setText("Absen Tamu Masuk");
             tableTitleLabel.setText("Riwayat Absen Tamu");
             rebuildVisitTableColumns();
@@ -392,6 +400,7 @@ public class LoanManagementPanel {
                     setText(null);
                     return;
                 }
+
                 Label label = new Label(item);
                 label.getStyleClass().add("loan-book-text");
                 label.setWrapText(true);
@@ -413,7 +422,9 @@ public class LoanManagementPanel {
             dueDateColumn.setPrefWidth(120);
 
             TableColumn<Object, String> statusColumn = createLoanStatusColumn();
-            mainTable.getColumns().setAll(memberColumn, copyColumn, titleColumn, loanDateColumn, dueDateColumn, statusColumn);
+            mainTable.getColumns().setAll(
+                    memberColumn, copyColumn, titleColumn, loanDateColumn, dueDateColumn, statusColumn
+            );
         } else {
             TableColumn<Object, String> returnDateColumn = new TableColumn<>("DIKEMBALIKAN");
             returnDateColumn.setCellValueFactory(cell -> new SimpleStringProperty(((LoanRow) cell.getValue()).returnDate()));
@@ -426,7 +437,9 @@ public class LoanManagementPanel {
             fineColumn.setPrefWidth(120);
 
             TableColumn<Object, String> statusColumn = createLoanStatusColumn();
-            mainTable.getColumns().setAll(memberColumn, copyColumn, titleColumn, returnDateColumn, fineColumn, statusColumn);
+            mainTable.getColumns().setAll(
+                    memberColumn, copyColumn, titleColumn, returnDateColumn, fineColumn, statusColumn
+            );
         }
 
         mainTable.setItems(FXCollections.observableArrayList(new ArrayList<>(visibleRows)));
@@ -582,6 +595,10 @@ public class LoanManagementPanel {
             return;
         }
 
+        if (currentMode == LoanViewMode.RETURNED || currentMode == LoanViewMode.MEMBER_VISIT) {
+            return;
+        }
+
         StackPane host = resolveModalHost();
         if (host == null) {
             return;
@@ -589,12 +606,10 @@ public class LoanManagementPanel {
 
         if (currentMode == LoanViewMode.ACTIVE) {
             modalOverlay = buildBorrowModal();
-        } else if (currentMode == LoanViewMode.RETURNED) {
-            modalOverlay = buildReturnModal();
-        } else if (currentMode == LoanViewMode.MEMBER_VISIT) {
-            modalOverlay = buildMemberVisitModal();
-        } else {
+        } else if (currentMode == LoanViewMode.GUEST_VISIT) {
             modalOverlay = buildGuestVisitModal();
+        } else {
+            return;
         }
 
         modalHost = host;
@@ -653,70 +668,6 @@ public class LoanManagementPanel {
                 refreshData();
                 closeModal();
                 showInfo("Transaksi peminjaman berhasil.");
-            } catch (Exception exception) {
-                showError(resolveErrorMessage(exception));
-            }
-        });
-
-        footer.getChildren().addAll(cancelButton, saveButton);
-        card.getChildren().addAll(body, footer);
-        overlay.getChildren().add(card);
-        return overlay;
-    }
-
-    private StackPane buildReturnModal() {
-        TextField copyCodeInput = createModalTextField("Masukkan kode eksemplar");
-
-        StackPane overlay = buildBaseModalOverlay();
-        VBox card = buildBaseModalCard("Catat Pengembalian");
-
-        VBox body = new VBox(16);
-        body.getStyleClass().add("loan-modal-body");
-        body.getChildren().add(buildModalField("Kode Eksemplar", copyCodeInput));
-
-        HBox footer = buildModalFooter();
-
-        Button cancelButton = createCancelModalButton();
-        Button saveButton = new Button("Proses");
-        saveButton.getStyleClass().addAll("loan-modal-button", "loan-modal-button-save");
-        saveButton.setOnAction(event -> {
-            try {
-                Loan loan = loanService.returnBook(copyCodeInput.getText().trim());
-                refreshData();
-                closeModal();
-                showInfo("Buku berhasil dikembalikan. Denda: " + formatCurrency(loan.getFineAmount()));
-            } catch (Exception exception) {
-                showError(resolveErrorMessage(exception));
-            }
-        });
-
-        footer.getChildren().addAll(cancelButton, saveButton);
-        card.getChildren().addAll(body, footer);
-        overlay.getChildren().add(card);
-        return overlay;
-    }
-
-    private StackPane buildMemberVisitModal() {
-        TextField memberCodeInput = createModalTextField("Masukkan NIM / NIS / NIDN");
-
-        StackPane overlay = buildBaseModalOverlay();
-        VBox card = buildBaseModalCard("Catat Kunjungan Mahasiswa");
-
-        VBox body = new VBox(16);
-        body.getStyleClass().add("loan-modal-body");
-        body.getChildren().add(buildModalField("Kode Anggota", memberCodeInput));
-
-        HBox footer = buildModalFooter();
-
-        Button cancelButton = createCancelModalButton();
-        Button saveButton = new Button("Simpan");
-        saveButton.getStyleClass().addAll("loan-modal-button", "loan-modal-button-save");
-        saveButton.setOnAction(event -> {
-            try {
-                visitService.recordMemberVisit(memberCodeInput.getText().trim());
-                refreshData();
-                closeModal();
-                showInfo("Kunjungan berhasil dicatat.");
             } catch (Exception exception) {
                 showError(resolveErrorMessage(exception));
             }
@@ -872,24 +823,12 @@ public class LoanManagementPanel {
                 : message;
     }
 
-   private void showInfo(String message) {
-    FxFeedback.showSuccessToast(FxFeedback.resolveHost(root), message);
-}
+    private void showInfo(String message) {
+        FxFeedback.showSuccessToast(FxFeedback.resolveHost(root), message);
+    }
 
-private void showError(String message) {
-    FxFeedback.showErrorToast(FxFeedback.resolveHost(root), message);
-}
-    private void showAlert(Alert.AlertType type, String message) {
-        Alert alert = new Alert(type);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-
-        Window owner = root == null || root.getScene() == null ? null : root.getScene().getWindow();
-        if (owner != null) {
-            alert.initOwner(owner);
-        }
-
-        alert.showAndWait();
+    private void showError(String message) {
+        FxFeedback.showErrorToast(FxFeedback.resolveHost(root), message);
     }
 
     private record LoanRow(
