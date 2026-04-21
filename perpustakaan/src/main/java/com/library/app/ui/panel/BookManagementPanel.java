@@ -19,6 +19,7 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -45,8 +46,6 @@ public class BookManagementPanel {
     private static final Locale ID_LOCALE = Locale.forLanguageTag("id-ID");
     private static final double ADD_BOOK_MODAL_WIDTH = 980;
     private static final double ADD_BOOK_MODAL_HEIGHT = 620;
-    private static final double ADD_BOOK_MODAL_OFFSET_X = 72;
-    private static final double BOOK_TABLE_HEADER_HEIGHT = 44;
 
     private final BookService bookService = new BookService();
     private final ObservableList<BookCatalogItem> catalogItems = FXCollections.observableArrayList();
@@ -146,9 +145,12 @@ public class BookManagementPanel {
         VBox tableCard = new VBox(10);
         tableCard.getStyleClass().addAll("list-card", "book-table-card");
         tableCard.setPadding(new Insets(0));
+        
+        // --- FIX ANTI LAG: Izinkan Card merenggang otomatis ---
+        VBox.setVgrow(tableCard, Priority.ALWAYS); 
 
         bookTable.getStyleClass().add("book-table");
-        bookTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        bookTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
         bookTable.setFixedCellSize(56);
         bookTable.setFocusTraversable(false);
 
@@ -159,6 +161,10 @@ public class BookManagementPanel {
         tableCard.getChildren().add(bookTable);
 
         content.getChildren().addAll(header, toolbar, tableCard);
+        
+        // --- FIX ANTI LAG: Izinkan Konten utama merenggang otomatis ---
+        VBox.setVgrow(content, Priority.ALWAYS); 
+
         return content;
     }
 
@@ -383,27 +389,23 @@ public class BookManagementPanel {
         actionColumn.setReorderable(false);
         actionColumn.setPrefWidth(105);
 
-        bookTable.getColumns().setAll(
-                bookColumn,
-                isbnColumn,
-                categoryColumn,
-                yearColumn,
-                copiesColumn,
-                statusColumn,
-                shelfColumn,
-                actionColumn);
+        bookTable.getColumns().clear();
+        bookTable.getColumns().addAll(List.of(
+            bookColumn,
+            isbnColumn,
+            categoryColumn,
+            yearColumn,
+            copiesColumn,
+            statusColumn,
+            shelfColumn,
+            actionColumn));
 
         updateTableHeight();
     }
 
     private void updateTableHeight() {
-        double rowHeight = bookTable.getFixedCellSize() > 0 ? bookTable.getFixedCellSize() : 56;
-        int rowCount = Math.max(filteredItems.size(), 1);
-        double tableHeight = BOOK_TABLE_HEADER_HEIGHT + (rowCount * rowHeight) + 2;
-
-        bookTable.setMinHeight(tableHeight);
-        bookTable.setPrefHeight(tableHeight);
-        bookTable.setMaxHeight(tableHeight);
+        // --- FIX ANTI LAG: Hapus perkalian baris, aktifkan fitur Lazy Load ---
+        VBox.setVgrow(bookTable, Priority.ALWAYS);
     }
 
     private Button createIconActionButton(Node icon, String variantClass, String tooltipText) {
@@ -934,28 +936,81 @@ public class BookManagementPanel {
     }
 
     private boolean showDeleteConfirmation(String bookTitle) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Konfirmasi Hapus Buku");
-        alert.setHeaderText("Hapus buku \"" + bookTitle + "\"?");
-
-        Label contentLabel = new Label("Aksi ini akan menghapus data buku dan seluruh eksemplarnya.");
-        contentLabel.setWrapText(true);
-        contentLabel.setMaxWidth(420);
-
-        alert.getDialogPane().setContent(contentLabel);
-        alert.getDialogPane().setPrefWidth(480);
-        alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
-
-        ButtonType cancelButton = new ButtonType("Batal", ButtonBar.ButtonData.CANCEL_CLOSE);
-        ButtonType deleteButton = new ButtonType("Hapus", ButtonBar.ButtonData.OK_DONE);
-        alert.getButtonTypes().setAll(cancelButton, deleteButton);
+        javafx.scene.control.Dialog<Boolean> dialog = new javafx.scene.control.Dialog<>();
+        dialog.initStyle(javafx.stage.StageStyle.TRANSPARENT); 
 
         Window owner = root == null || root.getScene() == null ? null : root.getScene().getWindow();
         if (owner != null) {
-            alert.initOwner(owner);
+            dialog.initOwner(owner);
         }
 
-        ButtonType chosen = alert.showAndWait().orElse(cancelButton);
-        return chosen == deleteButton;
+        DialogPane dialogPane = dialog.getDialogPane();
+        
+        dialogPane.setStyle(
+            "-fx-background-color: white; " +
+            "-fx-background-radius: 12; " +
+            "-fx-border-radius: 12; " +
+            "-fx-border-color: #e5e7eb; " +
+            "-fx-padding: 24 24 16 24;"
+        );
+
+        if (dialogPane.getScene() != null) {
+            dialogPane.getScene().setFill(javafx.scene.paint.Color.TRANSPARENT);
+        }
+
+        HBox contentBox = new HBox(16);
+        contentBox.setAlignment(Pos.TOP_LEFT);
+
+        SVGPath trashIcon = new SVGPath();
+        trashIcon.setContent("M2.5 3a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h2.5a1 1 0 0 1 1 1V4H2.5V3zm1 2h9l-.8 9.2a1.5 1.5 0 0 1-1.5 1.3H5.8a1.5 1.5 0 0 1-1.5-1.3L3.5 5z");
+        trashIcon.setStyle("-fx-fill: #ef4444;"); 
+
+        StackPane iconContainer = new StackPane(trashIcon);
+        iconContainer.setMinSize(48, 48);
+        iconContainer.setPrefSize(48, 48);
+        iconContainer.setStyle("-fx-background-color: #fee2e2; -fx-background-radius: 50%;");
+
+        VBox textBox = new VBox(6);
+        textBox.setAlignment(Pos.CENTER_LEFT);
+        
+        Label titleLabel = new Label("Hapus Buku"); 
+        titleLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #111827;");
+        Label subtitleLabel = new Label("Tindakan ini tidak dapat dibatalkan.");
+        subtitleLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #6b7280;");
+        textBox.getChildren().addAll(titleLabel, subtitleLabel);
+
+        contentBox.getChildren().addAll(iconContainer, textBox);
+        dialogPane.setContent(contentBox);
+
+        ButtonType cancelButtonType = new ButtonType("Batal", ButtonBar.ButtonData.CANCEL_CLOSE);
+        ButtonType deleteButtonType = new ButtonType("Hapus", ButtonBar.ButtonData.OK_DONE);
+        dialogPane.getButtonTypes().addAll(cancelButtonType, deleteButtonType);
+
+        Button cancelButton = (Button) dialogPane.lookupButton(cancelButtonType);
+        cancelButton.setStyle(
+            "-fx-background-color: #f3f4f6; " +
+            "-fx-text-fill: #374151; " +
+            "-fx-font-weight: bold; " +
+            "-fx-padding: 8 16; " +
+            "-fx-background-radius: 6; " +
+            "-fx-cursor: hand;"
+        );
+
+        Button deleteButton = (Button) dialogPane.lookupButton(deleteButtonType);
+        deleteButton.setStyle(
+            "-fx-background-color: #ef4444; " +
+            "-fx-text-fill: white; " +
+            "-fx-font-weight: bold; " +
+            "-fx-padding: 8 16; " +
+            "-fx-background-radius: 6; " +
+            "-fx-cursor: hand;"
+        );
+
+        dialogPane.setHeader(null);
+        dialogPane.setGraphic(null);
+
+        dialog.setResultConverter(buttonType -> buttonType == deleteButtonType);
+
+        return dialog.showAndWait().orElse(false);
     }
 }
