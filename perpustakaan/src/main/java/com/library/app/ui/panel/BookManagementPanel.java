@@ -46,7 +46,6 @@ public class BookManagementPanel {
     private static final double ADD_BOOK_MODAL_WIDTH = 980;
     private static final double ADD_BOOK_MODAL_HEIGHT = 620;
     private static final double ADD_BOOK_MODAL_OFFSET_X = 72;
-    private static final double BOOK_TABLE_HEADER_HEIGHT = 44;
 
     private final BookService bookService = new BookService();
     private final ObservableList<BookCatalogItem> catalogItems = FXCollections.observableArrayList();
@@ -66,6 +65,7 @@ public class BookManagementPanel {
             VBox content = buildContent();
             root = new StackPane(content);
             root.getStyleClass().add("book-management-root");
+            root.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
             StackPane.setAlignment(content, Pos.TOP_LEFT);
 
             bindFilterEvents();
@@ -94,6 +94,8 @@ public class BookManagementPanel {
         VBox content = new VBox(18);
         content.getStyleClass().add("book-management-content");
         content.setPadding(Insets.EMPTY);
+        content.setFillWidth(true);
+        content.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
 
         HBox header = new HBox();
         header.getStyleClass().add("book-section-header");
@@ -146,11 +148,13 @@ public class BookManagementPanel {
         VBox tableCard = new VBox(10);
         tableCard.getStyleClass().addAll("list-card", "book-table-card");
         tableCard.setPadding(new Insets(0));
+        VBox.setVgrow(tableCard, Priority.ALWAYS);
 
         bookTable.getStyleClass().add("book-table");
         bookTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         bookTable.setFixedCellSize(56);
         bookTable.setFocusTraversable(false);
+        VBox.setVgrow(bookTable, Priority.ALWAYS);
 
         Label emptyLabel = new Label("Belum ada data buku yang dapat ditampilkan.");
         emptyLabel.getStyleClass().add("empty-list");
@@ -165,10 +169,7 @@ public class BookManagementPanel {
     private void bindFilterEvents() {
         searchField.textProperty().addListener((observable, oldValue, newValue) -> applyFilters());
         categoryFilter.valueProperty().addListener((observable, oldValue, newValue) -> applyFilters());
-        filteredItems.addListener((ListChangeListener<BookCatalogItem>) change -> {
-            updateSubtitle();
-            updateTableHeight();
-        });
+        filteredItems.addListener((ListChangeListener<BookCatalogItem>) change -> updateSubtitle());
     }
 
     private void configureTable() {
@@ -392,18 +393,6 @@ public class BookManagementPanel {
                 statusColumn,
                 shelfColumn,
                 actionColumn);
-
-        updateTableHeight();
-    }
-
-    private void updateTableHeight() {
-        double rowHeight = bookTable.getFixedCellSize() > 0 ? bookTable.getFixedCellSize() : 56;
-        int rowCount = Math.max(filteredItems.size(), 1);
-        double tableHeight = BOOK_TABLE_HEADER_HEIGHT + (rowCount * rowHeight) + 2;
-
-        bookTable.setMinHeight(tableHeight);
-        bookTable.setPrefHeight(tableHeight);
-        bookTable.setMaxHeight(tableHeight);
     }
 
     private Button createIconActionButton(Node icon, String variantClass, String tooltipText) {

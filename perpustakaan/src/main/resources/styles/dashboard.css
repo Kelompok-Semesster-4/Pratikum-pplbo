@@ -537,6 +537,11 @@
   -fx-border-radius: 999;
 }
 
+.book-management-root,
+.book-management-content {
+  -fx-background-color: transparent;
+}
+
 .book-management-content {
   -fx-spacing: 16;
 }
@@ -626,16 +631,6 @@
   -fx-background-color: transparent;
   -fx-background-insets: 0;
   -fx-border-color: transparent;
-  -fx-padding: 0;
-}
-
-.book-table .scroll-bar:vertical,
-.book-table .scroll-bar:horizontal {
-  -fx-pref-width: 0;
-  -fx-pref-height: 0;
-  -fx-max-width: 0;
-  -fx-max-height: 0;
-  -fx-opacity: 0;
   -fx-padding: 0;
 }
 

@@ -306,9 +306,12 @@ class AdminDashboardFxApp extends Application {
         VBox content = new VBox(18);
         content.getStyleClass().add("content-body");
         content.setPadding(new Insets(16, 24, 24, 24));
+        content.setFillWidth(true);
 
         contentSwitcher = new StackPane();
         contentSwitcher.getStyleClass().add("content-switcher");
+        contentSwitcher.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        contentSwitcher.setMinHeight(0);
         VBox.setVgrow(contentSwitcher, Priority.ALWAYS);
         content.getChildren().add(contentSwitcher);
 
@@ -317,6 +320,7 @@ class AdminDashboardFxApp extends Application {
         ScrollPane scrollPane = new ScrollPane(content);
         scrollPane.getStyleClass().addAll("content-scroll", "app-scroll");
         scrollPane.setFitToWidth(true);
+        scrollPane.setFitToHeight(true);
         scrollPane.setPannable(true);
 
         BorderPane wrapper = new BorderPane();
