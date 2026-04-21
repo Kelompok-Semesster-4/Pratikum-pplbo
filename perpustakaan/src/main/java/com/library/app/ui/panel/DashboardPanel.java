@@ -1375,7 +1375,7 @@ class AdminDashboardFxApp extends Application {
 
         if (currentStage != null) {
             Stage targetStage = currentStage;
-            new KioskFrame().showOn(targetStage);
+            StageTransition.switchScene(targetStage, () -> new KioskFrame().showOn(targetStage));
             return;
         }
 

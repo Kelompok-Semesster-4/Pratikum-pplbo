@@ -5,6 +5,7 @@ import com.library.app.model.enums.Role;
 import com.library.app.service.AuthService;
 import com.library.app.session.UserSession;
 
+import javafx.animation.PauseTransition;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
@@ -18,6 +19,7 @@ import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.util.Objects;
 
@@ -28,8 +30,8 @@ public class LoginFrame {
     public void showOn(Stage stage) {
         this.stage = stage;
         stage.setTitle("Login - Sistem Manajemen Perpustakaan");
-        stage.setFullScreen(false);
-        stage.setMaximized(false);
+        stage.setMaximized(true);
+        stage.setFullScreen(true);
         stage.setFullScreenExitHint("");
 
         // Container utama (Background abu-abu kebiruan)
@@ -56,6 +58,13 @@ public class LoginFrame {
 
         stage.setScene(scene);
         stage.show();
+
+        // Some environments may reset fullscreen after scene changes.
+        javafx.application.Platform.runLater(() -> {
+            if (!stage.isFullScreen()) {
+                stage.setFullScreen(true);
+            }
+        });
     }
 
     // --- PANEL KIRI (Branding & Fitur) ---
@@ -172,7 +181,7 @@ public class LoginFrame {
             UserSession session = new UserSession(user);
 
             if (session.getRole() == Role.ADMIN) {
-                StageTransition.switchScene(stage, () -> new AdminFrame().showDashboard(stage));
+                switchToAdminWithLoading(stage);
             } else if (session.getRole() == Role.KIOSK) {
                 StageTransition.switchScene(stage, () -> new KioskFrame(session).showOn(stage));
             } else {
@@ -184,6 +193,45 @@ public class LoginFrame {
             statusLabel.setVisible(true);
             passField.clear();
         }
+    }
+
+    private void switchToAdminWithLoading(Stage stage) {
+        StageTransition.switchScene(stage, () -> {
+            StackPane loadingRoot = new StackPane();
+            loadingRoot.getStyleClass().add("app-root");
+
+            VBox loadingCard = new VBox(14);
+            loadingCard.setAlignment(Pos.CENTER);
+            loadingCard.setMaxSize(420, 220);
+            loadingCard.getStyleClass().add("login-card");
+
+            ProgressIndicator progressIndicator = new ProgressIndicator();
+            progressIndicator.setMaxSize(56, 56);
+
+            Label loadingTitle = new Label("Menyiapkan Dashboard Admin...");
+            loadingTitle.getStyleClass().add("login-title");
+
+            Label loadingSubtitle = new Label("Mohon tunggu sebentar.");
+            loadingSubtitle.getStyleClass().add("login-subtitle");
+
+            loadingCard.getChildren().addAll(progressIndicator, loadingTitle, loadingSubtitle);
+            loadingRoot.getChildren().add(loadingCard);
+
+            Scene loadingScene = new Scene(loadingRoot, 1024, 700);
+            try {
+                loadingScene.getStylesheets().add(Objects.requireNonNull(
+                        getClass().getResource("/styles/login.css")).toExternalForm());
+            } catch (Exception e) {
+                System.out.println("Gagal memuat login.css: " + e.getMessage());
+            }
+
+            stage.setScene(loadingScene);
+            stage.show();
+
+            PauseTransition delay = new PauseTransition(Duration.millis(140));
+            delay.setOnFinished(event -> new AdminFrame().showDashboard(stage));
+            delay.play();
+        });
     }
 
     // --- HELPER UNTUK LOGO & ICON ---
