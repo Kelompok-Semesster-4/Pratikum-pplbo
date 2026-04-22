@@ -5,6 +5,7 @@ import com.library.app.model.enums.Role;
 import com.library.app.service.AuthService;
 import com.library.app.session.UserSession;
 
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
@@ -28,8 +29,8 @@ public class LoginFrame {
     public void showOn(Stage stage) {
         this.stage = stage;
         stage.setTitle("Login - Sistem Manajemen Perpustakaan");
-        stage.setFullScreen(false);
-        stage.setMaximized(false);
+        stage.setMaximized(true);
+        stage.setFullScreen(true);
         stage.setFullScreenExitHint("");
 
         // Container utama (Background abu-abu kebiruan)
@@ -56,6 +57,12 @@ public class LoginFrame {
 
         stage.setScene(scene);
         stage.show();
+        Platform.runLater(() -> {
+            if (!stage.isFullScreen()) {
+                stage.setMaximized(true);
+                stage.setFullScreen(true);
+            }
+        });
     }
 
     // --- PANEL KIRI (Branding & Fitur) ---

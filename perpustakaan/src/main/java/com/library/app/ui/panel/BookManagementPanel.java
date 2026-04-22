@@ -2,6 +2,12 @@ package com.library.app.ui.panel;
 
 import com.library.app.model.BookCatalogItem;
 import com.library.app.service.BookService;
+
+import javafx.animation.FadeTransition;
+import javafx.animation.ParallelTransition;
+import javafx.animation.PauseTransition;
+import javafx.animation.TranslateTransition;
+import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -19,6 +25,7 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContentDisplay;
+import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -31,7 +38,9 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.SVGPath;
+import javafx.stage.Stage;
 import javafx.stage.Window;
+import javafx.util.Duration;
 
 import java.util.Comparator;
 import java.util.LinkedHashSet;
@@ -556,7 +565,7 @@ public class BookManagementPanel {
         try {
             bookService.deleteBook(selectedBook.getBookId());
             refreshData();
-            showInfo("Buku berhasil dihapus.");
+            showSuccessToast("Buku berhasil dihapus.");
         } catch (Exception exception) {
             showError(resolveErrorMessage(exception));
         }
@@ -915,36 +924,206 @@ public class BookManagementPanel {
         alert.setContentText(message);
 
         Window owner = root == null || root.getScene() == null ? null : root.getScene().getWindow();
+        boolean restoreFullscreen = isFullscreenStage(owner);
         if (owner != null) {
             alert.initOwner(owner);
         }
 
         alert.showAndWait();
+        restoreFullscreenIfNeeded(owner, restoreFullscreen);
     }
 
     private boolean showDeleteConfirmation(String bookTitle) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Konfirmasi Hapus Buku");
-        alert.setHeaderText("Hapus buku \"" + bookTitle + "\"?");
-
-        Label contentLabel = new Label("Aksi ini akan menghapus data buku dan seluruh eksemplarnya.");
-        contentLabel.setWrapText(true);
-        contentLabel.setMaxWidth(420);
-
-        alert.getDialogPane().setContent(contentLabel);
-        alert.getDialogPane().setPrefWidth(480);
-        alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
-
-        ButtonType cancelButton = new ButtonType("Batal", ButtonBar.ButtonData.CANCEL_CLOSE);
-        ButtonType deleteButton = new ButtonType("Hapus", ButtonBar.ButtonData.OK_DONE);
-        alert.getButtonTypes().setAll(cancelButton, deleteButton);
+        // Gunakan Dialog kustom, bukan Alert bawaan
+        javafx.scene.control.Dialog<Boolean> dialog = new javafx.scene.control.Dialog<>();
+        dialog.initStyle(javafx.stage.StageStyle.TRANSPARENT); // Hilangkan title bar bawaan OS
 
         Window owner = root == null || root.getScene() == null ? null : root.getScene().getWindow();
+        boolean restoreFullscreen = isFullscreenStage(owner);
         if (owner != null) {
-            alert.initOwner(owner);
+            dialog.initOwner(owner);
         }
 
-        ButtonType chosen = alert.showAndWait().orElse(cancelButton);
-        return chosen == deleteButton;
+        DialogPane dialogPane = dialog.getDialogPane();
+        
+        // Styling Card Modal (Putih, rounded, dengan sedikit padding)
+        dialogPane.setStyle(
+            "-fx-background-color: white; " +
+            "-fx-background-radius: 12; " +
+            "-fx-border-radius: 12; " +
+            "-fx-border-color: #e5e7eb; " +
+            "-fx-padding: 24 24 16 24;"
+        );
+
+        // Pastikan background Scene transparan agar sudut rounded terlihat sempurna
+        if (dialogPane.getScene() != null) {
+            dialogPane.getScene().setFill(javafx.scene.paint.Color.TRANSPARENT);
+        }
+
+        // --- Konten (Kiri: Ikon, Kanan: Teks) ---
+        HBox contentBox = new HBox(16);
+        contentBox.setAlignment(Pos.TOP_LEFT);
+
+        // 1. Ikon Tong Sampah (Menggunakan SVG kamu)
+        SVGPath trashIcon = new SVGPath();
+        trashIcon.setContent("M2.5 3a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h2.5a1 1 0 0 1 1 1V4H2.5V3zm1 2h9l-.8 9.2a1.5 1.5 0 0 1-1.5 1.3H5.8a1.5 1.5 0 0 1-1.5-1.3L3.5 5z");
+        trashIcon.setStyle("-fx-fill: #ef4444;"); // Warna merah
+
+        // Background bulat merah muda untuk ikon
+        StackPane iconContainer = new StackPane(trashIcon);
+        iconContainer.setMinSize(48, 48);
+        iconContainer.setPrefSize(48, 48);
+        iconContainer.setStyle("-fx-background-color: #fee2e2; -fx-background-radius: 50%;");
+
+        // 2. Teks (Judul & Subjudul)
+        VBox textBox = new VBox(6);
+        textBox.setAlignment(Pos.CENTER_LEFT);
+        // Bisa pakai parameter bookTitle kalau mau spesifik, di sini pakai "Hapus Buku" sesuai gambar
+        Label titleLabel = new Label("Hapus Buku"); 
+        titleLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #111827;");
+        Label subtitleLabel = new Label("Tindakan ini tidak dapat dibatalkan.");
+        subtitleLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #6b7280;");
+        textBox.getChildren().addAll(titleLabel, subtitleLabel);
+
+        contentBox.getChildren().addAll(iconContainer, textBox);
+        dialogPane.setContent(contentBox);
+
+        // --- Tombol Bawah ---
+        ButtonType cancelButtonType = new ButtonType("Batal", ButtonBar.ButtonData.CANCEL_CLOSE);
+        ButtonType deleteButtonType = new ButtonType("Hapus", ButtonBar.ButtonData.OK_DONE);
+        dialogPane.getButtonTypes().addAll(cancelButtonType, deleteButtonType);
+
+        // Styling Tombol "Batal"
+        Button cancelButton = (Button) dialogPane.lookupButton(cancelButtonType);
+        cancelButton.setStyle(
+            "-fx-background-color: #f3f4f6; " +
+            "-fx-text-fill: #374151; " +
+            "-fx-font-weight: bold; " +
+            "-fx-padding: 8 16; " +
+            "-fx-background-radius: 6; " +
+            "-fx-cursor: hand;"
+        );
+
+        // Styling Tombol "Hapus"
+        Button deleteButton = (Button) dialogPane.lookupButton(deleteButtonType);
+        deleteButton.setStyle(
+            "-fx-background-color: #ef4444; " +
+            "-fx-text-fill: white; " +
+            "-fx-font-weight: bold; " +
+            "-fx-padding: 8 16; " +
+            "-fx-background-radius: 6; " +
+            "-fx-cursor: hand;"
+        );
+
+        // Hapus header bawaan DialogPane
+        dialogPane.setHeader(null);
+        dialogPane.setGraphic(null);
+
+        // Return true jika tombol yang ditekan adalah tombol "Hapus"
+        dialog.setResultConverter(buttonType -> buttonType == deleteButtonType);
+
+        boolean confirmed = dialog.showAndWait().orElse(false);
+        restoreFullscreenIfNeeded(owner, restoreFullscreen);
+        return confirmed;
+    }
+
+    private boolean isFullscreenStage(Window window) {
+        return window instanceof Stage stage && stage.isFullScreen();
+    }
+
+    private void restoreFullscreenIfNeeded(Window window, boolean shouldRestoreFullscreen) {
+        if (!shouldRestoreFullscreen || !(window instanceof Stage stage)) {
+            return;
+        }
+
+        Platform.runLater(() -> {
+            if (!stage.isFullScreen()) {
+                stage.setMaximized(true);
+                stage.setFullScreenExitHint("");
+                stage.setFullScreen(true);
+            }
+        });
+    }
+    private void showSuccessToast(String message) {
+        if (root == null) return;
+
+        // 1. Buat Container (Card Notifikasi)
+        HBox toast = new HBox(12);
+        toast.setAlignment(Pos.CENTER_LEFT);
+        // Styling ala web (Background hijau muda, border hijau, text hijau gelap)
+        toast.setStyle(
+            "-fx-background-color: #ecfdf5; " +
+            "-fx-border-color: #a7f3d0; " +
+            "-fx-border-width: 1; " +
+            "-fx-border-radius: 6; " +
+            "-fx-background-radius: 6; " +
+            "-fx-padding: 12 16;"
+        );
+        // Agar ukurannya menyesuaikan isi, tidak membentang full
+        toast.setMaxWidth(Region.USE_PREF_SIZE);
+        toast.setMaxHeight(Region.USE_PREF_SIZE);
+
+        // 2. Icon Centang
+        SVGPath checkIcon = new SVGPath();
+        checkIcon.setContent("M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z");
+        checkIcon.setStyle("-fx-fill: #10b981;"); // Warna hijau icon
+
+        // 3. Teks Pesan
+        Label messageLabel = new Label(message);
+        messageLabel.setStyle("-fx-text-fill: #065f46; -fx-font-size: 14px; -fx-font-weight: 500;");
+
+        // 4. Spacer (Pendorong tombol close ke kanan)
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        spacer.setMinWidth(40);
+
+        // 5. Tombol Close (x)
+        Label closeBtn = new Label("✕");
+        closeBtn.setStyle("-fx-text-fill: #10b981; -fx-font-size: 14px; -fx-cursor: hand;");
+        
+        toast.getChildren().addAll(checkIcon, messageLabel, spacer, closeBtn);
+
+        // 6. Atur Posisi di Pojok Kanan Atas root StackPane
+        StackPane.setAlignment(toast, Pos.TOP_RIGHT);
+        StackPane.setMargin(toast, new Insets(20, 24, 0, 0)); // Jarak dari atas dan kanan
+
+        // Tambahkan ke root
+        root.getChildren().add(toast);
+
+        // --- ANIMASI MASUK ---
+        TranslateTransition slideIn = new TranslateTransition(Duration.millis(300), toast);
+        slideIn.setFromY(-40); // Mulai dari agak ke atas
+        slideIn.setToY(0);
+
+        FadeTransition fadeIn = new FadeTransition(Duration.millis(300), toast);
+        fadeIn.setFromValue(0); // Dari transparan
+        fadeIn.setToValue(1);
+
+        ParallelTransition ptIn = new ParallelTransition(slideIn, fadeIn);
+
+        // --- ANIMASI KELUAR ---
+        TranslateTransition slideOut = new TranslateTransition(Duration.millis(300), toast);
+        slideOut.setByY(-40);
+        
+        FadeTransition fadeOut = new FadeTransition(Duration.millis(300), toast);
+        fadeOut.setToValue(0);
+
+        ParallelTransition ptOut = new ParallelTransition(slideOut, fadeOut);
+        // Hapus node dari root setelah animasi selesai agar tidak menumpuk di memory
+        ptOut.setOnFinished(e -> root.getChildren().remove(toast));
+
+        // Auto-hide setelah 3.5 detik
+        PauseTransition delay = new PauseTransition(Duration.millis(3500));
+        delay.setOnFinished(e -> ptOut.play());
+
+        // Hapus manual jika tombol close diklik
+        closeBtn.setOnMouseClicked(e -> {
+            delay.stop(); // Hentikan timer auto-hide
+            ptOut.play(); // Langsung mainkan animasi keluar
+        });
+
+        // Mainkan animasi masuk, lalu mulai timer auto-hide
+        ptIn.setOnFinished(e -> delay.play());
+        ptIn.play();
     }
 }
