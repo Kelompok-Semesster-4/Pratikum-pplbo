@@ -5,6 +5,7 @@ import com.library.app.service.MemberService;
 import com.library.app.service.ProcurementService;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -18,8 +19,10 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.TextAlignment;
 
 public class KioskProcurementFxPanel {
     private final MemberService memberService = new MemberService();
@@ -57,25 +60,37 @@ public class KioskProcurementFxPanel {
         wrapper.setPadding(new Insets(10, 0, 24, 0));
 
         VBox card = new VBox(16);
+        card.getStyleClass().add("procurement-card");
         card.setMaxWidth(860);
         card.setPrefWidth(860);
         card.setPadding(new Insets(28));
-        card.setStyle(
-                "-fx-background-color: white; " +
-                        "-fx-background-radius: 26; " +
-                        "-fx-border-radius: 26; " +
-                        "-fx-border-color: #E5E7EB; " +
-                        "-fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.08), 22, 0, 0, 10);");
 
-        Label title = new Label("Usulan Pengadaan Buku");
-        title.setStyle("-fx-font-size: 26px; -fx-font-weight: 800; -fx-text-fill: #111827;");
+        Node icon = KioskIconFactory.createRequestIcon(Color.web("#7C3AED"));
+        StackPane iconShell = new StackPane(icon);
+        iconShell.getStyleClass().addAll("visit-icon-shell", "procurement-icon-shell");
+        iconShell.setAlignment(Pos.CENTER);
+        iconShell.setMinSize(46, 46);
+        iconShell.setPrefSize(46, 46);
+        iconShell.setMaxSize(46, 46);
+
+        Label title = new Label("Usul Buku");
+        title.getStyleClass().addAll("visit-title", "procurement-title");
+        title.setAlignment(Pos.CENTER);
+        title.setTextAlignment(TextAlignment.CENTER);
 
         Label subtitle = new Label(
                 "Ajukan buku yang ingin tersedia di perpustakaan. Lengkapi data buku agar admin mudah meninjau permintaan.");
         subtitle.setWrapText(true);
-        subtitle.setStyle("-fx-font-size: 13px; -fx-text-fill: #6B7280;");
+        subtitle.getStyleClass().addAll("visit-subtitle", "procurement-subtitle");
+        subtitle.setAlignment(Pos.CENTER);
+        subtitle.setTextAlignment(TextAlignment.CENTER);
+        subtitle.setMaxWidth(560);
+
+        VBox headerBox = new VBox(8, iconShell, title, subtitle);
+        headerBox.setAlignment(Pos.CENTER);
 
         GridPane grid = new GridPane();
+        grid.getStyleClass().add("procurement-grid");
         grid.setHgap(18);
         grid.setVgap(14);
 
@@ -93,14 +108,14 @@ public class KioskProcurementFxPanel {
         memberCodeField.textProperty().addListener((obs, oldValue, newValue) -> {
             selectedMember = null;
             memberNameHint.setText("Cocokkan kode anggota untuk mengambil nama anggota.");
-            memberNameHint.setStyle("-fx-font-size: 12px; -fx-text-fill: #6B7280;");
+            memberNameHint.getStyleClass().setAll("procurement-member-hint");
         });
 
         memberNameHint = new Label("Cocokkan kode anggota untuk mengambil nama anggota.");
-        memberNameHint.setStyle("-fx-font-size: 12px; -fx-text-fill: #6B7280;");
+        memberNameHint.getStyleClass().add("procurement-member-hint");
 
         Button checkMemberButton = new Button("Cek Anggota");
-        checkMemberButton.setStyle(primaryButtonStyle());
+        checkMemberButton.getStyleClass().addAll("visit-submit-button", "procurement-check-button");
         checkMemberButton.setOnAction(event -> lookupMember());
 
         HBox memberActionRow = new HBox(10, memberCodeField, checkMemberButton);
@@ -131,23 +146,24 @@ public class KioskProcurementFxPanel {
         Label helper = new Label(
                 "Catatan: judul, pengarang, dan alasan permintaan sebaiknya diisi sejelas mungkin agar proses review lebih cepat.");
         helper.setWrapText(true);
-        helper.setStyle("-fx-font-size: 12px; -fx-text-fill: #6B7280;");
+        helper.getStyleClass().add("procurement-helper");
 
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        Button backButton = new Button("Kembali");
-        backButton.setStyle(secondaryButtonStyle());
-        backButton.setOnAction(event -> onBack.run());
-
-        Button submitButton = new Button("Kirim Usulan");
-        submitButton.setStyle(primaryButtonStyle());
+        Button submitButton = new Button("Ajukan Usulan");
+        submitButton.getStyleClass().addAll("visit-submit-button", "procurement-submit-button");
         submitButton.setOnAction(event -> submit());
 
-        HBox actionRow = new HBox(12, backButton, spacer, submitButton);
-        actionRow.setAlignment(Pos.CENTER_LEFT);
+        HBox actionRow = new HBox(submitButton);
+        actionRow.setAlignment(Pos.CENTER);
 
-        card.getChildren().addAll(title, subtitle, grid, reasonBox, helper, actionRow);
+        Label backLabel = new Label("Kembali");
+        backLabel.getStyleClass().add("visit-back-link");
+        backLabel.setCursor(Cursor.HAND);
+        backLabel.setOnMouseClicked(event -> onBack.run());
+
+        HBox backRow = new HBox(backLabel);
+        backRow.setAlignment(Pos.CENTER);
+
+        card.getChildren().addAll(headerBox, grid, reasonBox, helper, actionRow, backRow);
         wrapper.getChildren().add(card);
         return wrapper;
     }
@@ -156,11 +172,11 @@ public class KioskProcurementFxPanel {
         try {
             selectedMember = memberService.findByCode(memberCodeField.getText());
             memberNameHint.setText("Anggota ditemukan: " + selectedMember.getName());
-            memberNameHint.setStyle("-fx-font-size: 12px; -fx-text-fill: #0F766E; -fx-font-weight: 700;");
+            memberNameHint.getStyleClass().setAll("procurement-member-hint", "procurement-member-hint-success");
         } catch (IllegalArgumentException exception) {
             selectedMember = null;
             memberNameHint.setText(exception.getMessage());
-            memberNameHint.setStyle("-fx-font-size: 12px; -fx-text-fill: #DC2626; -fx-font-weight: 700;");
+            memberNameHint.getStyleClass().setAll("procurement-member-hint", "procurement-member-hint-error");
         }
     }
 
@@ -220,7 +236,7 @@ public class KioskProcurementFxPanel {
 
         selectedMember = null;
         memberNameHint.setText("Cocokkan kode anggota untuk mengambil nama anggota.");
-        memberNameHint.setStyle("-fx-font-size: 12px; -fx-text-fill: #6B7280;");
+        memberNameHint.getStyleClass().setAll("procurement-member-hint");
     }
 
     private VBox buildFieldBox(String labelText, Node input) {
@@ -231,14 +247,14 @@ public class KioskProcurementFxPanel {
 
     private Label createFieldLabel(String text) {
         Label label = new Label(text);
-        label.setStyle("-fx-font-size: 13px; -fx-font-weight: 700; -fx-text-fill: #111827;");
+        label.getStyleClass().add("procurement-field-label");
         return label;
     }
 
     private TextField createField(String promptText) {
         TextField field = new TextField();
         field.setPromptText(promptText);
-        field.setStyle(inputStyle());
+        field.getStyleClass().addAll("visit-input", "procurement-input");
         return field;
     }
 
@@ -247,35 +263,8 @@ public class KioskProcurementFxPanel {
         area.setPromptText(promptText);
         area.setPrefRowCount(6);
         area.setWrapText(true);
-        area.setStyle(inputStyle() + "-fx-padding: 14 16 14 16;");
+        area.getStyleClass().addAll("visit-input", "procurement-input", "procurement-reason-area");
         return area;
     }
 
-    private String inputStyle() {
-        return "-fx-background-color: #F9FAFB; " +
-                "-fx-background-radius: 16; " +
-                "-fx-border-color: #D1D5DB; " +
-                "-fx-border-radius: 16; " +
-                "-fx-padding: 12 14 12 14; " +
-                "-fx-font-size: 13px; " +
-                "-fx-text-fill: #111827;";
-    }
-
-    private String primaryButtonStyle() {
-        return "-fx-background-color: #2563EB; " +
-                "-fx-text-fill: white; " +
-                "-fx-font-weight: 700; " +
-                "-fx-background-radius: 16; " +
-                "-fx-padding: 12 20 12 20; " +
-                "-fx-cursor: hand;";
-    }
-
-    private String secondaryButtonStyle() {
-        return "-fx-background-color: #E5E7EB; " +
-                "-fx-text-fill: #111827; " +
-                "-fx-font-weight: 700; " +
-                "-fx-background-radius: 16; " +
-                "-fx-padding: 12 20 12 20; " +
-                "-fx-cursor: hand;";
-    }
 }

@@ -27,61 +27,72 @@ import javafx.util.Duration;
 
 public class KioskSearchBookPanel {
     private final BookService bookService = new BookService();
+    private static final double SEARCH_CARD_WIDTH = 620;
+    private static final double SEARCH_FIELD_WIDTH = 500;
 
     public Node createContent(Runnable onBack) {
         VBox content = new VBox(10);
         content.getStyleClass().add("visit-content");
         content.setAlignment(Pos.CENTER);
-        content.setMaxWidth(480);
+        content.setMaxWidth(700);
 
-        Label title = new Label("Pencarian Buku");
-        title.getStyleClass().add("visit-title");
+        Node topIcon = KioskIconFactory.createSearchIcon(Color.web("#059669"));
+        StackPane topIconShell = new StackPane(topIcon);
+        topIconShell.getStyleClass().addAll("visit-icon-shell", "search-feature-icon-shell");
+        topIconShell.setAlignment(Pos.CENTER);
+        topIconShell.setMinSize(46, 46);
+        topIconShell.setPrefSize(46, 46);
+        topIconShell.setMaxSize(46, 46);
 
-        Label subtitle = new Label("Cari berdasarkan judul, pengarang, atau kategori");
-        subtitle.getStyleClass().add("visit-subtitle");
+        Label title = new Label("Cari Buku");
+        title.getStyleClass().addAll("visit-title", "search-feature-title");
+        title.setAlignment(Pos.CENTER);
+        title.setTextAlignment(TextAlignment.CENTER);
+
+        Label subtitle = new Label("Cari berdasarkan judul, pengarang, atau kategori buku.");
+        subtitle.getStyleClass().addAll("visit-subtitle", "search-feature-subtitle");
+        subtitle.setWrapText(true);
+        subtitle.setMaxWidth(520);
+        subtitle.setAlignment(Pos.CENTER);
         subtitle.setTextAlignment(TextAlignment.CENTER);
 
-        Node searchIcon = KioskIconFactory.createSearchIcon(Color.web("#9ca3af"));
+        VBox headerBox = new VBox(8, topIconShell, title, subtitle);
+        headerBox.setAlignment(Pos.CENTER);
+
+        Node searchIcon = KioskIconFactory.createSearchIcon(Color.web("#64748b"));
         searchIcon.setScaleX(1.0);
         searchIcon.setScaleY(1.0);
 
         TextField searchField = new TextField();
         searchField.setPromptText("Ketik judul atau pengarang...");
-        searchField.getStyleClass().add("visit-input");
-        searchField.setMaxWidth(Double.MAX_VALUE);
-        searchField.setStyle(
-            "-fx-background-color: transparent; " +
-            "-fx-border-color: transparent; " +
-            "-fx-focus-color: transparent; " + 
-            "-fx-faint-focus-color: transparent; " +
-            "-fx-font-size: 15px; " +
-            "-fx-prompt-text-fill: #94a3b8;"
-        );
+        searchField.getStyleClass().addAll("visit-input", "search-feature-input");
+        searchField.setPrefWidth(SEARCH_FIELD_WIDTH);
+        searchField.setMaxWidth(SEARCH_FIELD_WIDTH);
 
         HBox searchBox = new HBox(10);
+        searchBox.getStyleClass().add("search-feature-search-box");
         searchBox.setAlignment(Pos.CENTER_LEFT);
         searchBox.setPadding(new Insets(8, 15, 8, 15));
-        searchBox.setMaxWidth(700);
-        String defaultStyle = "-fx-background-color: white; -fx-background-radius: 8; -fx-border-color: #cbd5e1; -fx-border-radius: 8; -fx-border-width: 1.5;";
-        String focusedStyle = "-fx-background-color: white; -fx-background-radius: 8; -fx-border-color: #3b82f6; -fx-border-radius: 8; -fx-border-width: 1.5;";
-        searchBox.setStyle(defaultStyle);
+        searchBox.setMaxWidth(SEARCH_FIELD_WIDTH + 46);
         searchBox.getChildren().addAll(searchIcon, searchField);
         HBox.setHgrow(searchField, Priority.ALWAYS);
 
         searchField.focusedProperty().addListener((observable, wasFocused, isFocused) -> {
             if (isFocused) {
-                searchBox.setStyle(focusedStyle);
+                if (!searchBox.getStyleClass().contains("search-feature-search-box-focused")) {
+                    searchBox.getStyleClass().add("search-feature-search-box-focused");
+                }
             } else {
-                searchBox.setStyle(defaultStyle);
+                searchBox.getStyleClass().remove("search-feature-search-box-focused");
             }
         });
 
-        Node bigSearchIcon = KioskIconFactory.createSearchIcon(Color.web("#9ca3af"));
+        Node bigSearchIcon = KioskIconFactory.createSearchIcon(Color.web("#059669"));
         bigSearchIcon.setScaleX(1.5);
         bigSearchIcon.setScaleY(1.5);
 
         StackPane bigSearchIconShell = new StackPane(bigSearchIcon);
-        bigSearchIconShell.getStyleClass().add("search-icon-shell");
+        bigSearchIconShell.getStyleClass().add("search-feature-empty-icon-shell");
         bigSearchIconShell.setAlignment(Pos.CENTER);
         bigSearchIconShell.setMinSize(50, 50);
         bigSearchIconShell.setPrefSize(50, 50);
@@ -89,24 +100,35 @@ public class KioskSearchBookPanel {
         StackPane.setAlignment(bigSearchIconShell, Pos.CENTER);
 
         Label hint = new Label("Ketik minimal 2 karakter untuk mencari");
-        hint.getStyleClass().add("visit-subtitle");
+        hint.getStyleClass().add("search-feature-hint");
         hint.setTextAlignment(TextAlignment.CENTER);
 
         VBox emptyBox = new VBox(15);
         emptyBox.setAlignment(Pos.CENTER);
-        emptyBox.setPadding(new Insets(40, 0, 40, 0));
+        emptyBox.setPadding(new Insets(28, 0, 28, 0));
         emptyBox.getChildren().addAll(bigSearchIconShell, hint);
 
+        Label noResultLabel = new Label("Buku tidak ditemukan.");
+        noResultLabel.getStyleClass().add("search-feature-hint");
+
+        VBox noResultBox = new VBox(15, bigSearchIconShell, noResultLabel);
+        noResultBox.setAlignment(Pos.CENTER);
+        noResultBox.setPadding(new Insets(28, 0, 28, 0));
+
         VBox resultsContainer = new VBox(15);
+        resultsContainer.getStyleClass().add("search-feature-results");
         resultsContainer.setPadding(new Insets(10, 5, 20, 5));
+        resultsContainer.setFillWidth(true);
 
         ScrollPane scroller = new ScrollPane(resultsContainer);
         scroller.setFitToWidth(true);
-        scroller.getStyleClass().add("search-book-scroller");
-        scroller.getStyleClass().add("edge-to-edge");
+        scroller.getStyleClass().addAll("search-book-scroller", "app-scroll");
 
         VBox bookLists = new VBox(emptyBox);
         bookLists.setAlignment(Pos.CENTER);
+        bookLists.setPrefHeight(340);
+        bookLists.setPrefWidth(SEARCH_FIELD_WIDTH + 46);
+        bookLists.setMaxWidth(SEARCH_FIELD_WIDTH + 46);
         VBox.setVgrow(bookLists, Priority.ALWAYS);
 
         PauseTransition pause = new PauseTransition(Duration.millis(500));
@@ -140,8 +162,11 @@ public class KioskSearchBookPanel {
                                 
                                 resultsContainer.getChildren().add(card);
                             }
-
-                            bookLists.getChildren().setAll(scroller);
+                            if (items.isEmpty()) {
+                                bookLists.getChildren().setAll(noResultBox);
+                            } else {
+                                bookLists.getChildren().setAll(scroller);
+                            }
                         });
 
                         return null;
@@ -157,18 +182,21 @@ public class KioskSearchBookPanel {
         back.getStyleClass().add("visit-back-link");
         back.setCursor(Cursor.HAND);
         back.setOnMouseClicked(event -> onBack.run());
-        
-        VBox.setMargin(title, new Insets(8, 0, 0, 0));
-        VBox.setMargin(subtitle, new Insets(2, 0, 16, 0));
-        VBox.setMargin(back, new Insets(18, 0, 0, 0));
 
-        content.getChildren().addAll(
-            title,
-            subtitle,
-            searchBox,
-            bookLists,
-            back
-        );
+        HBox backRow = new HBox(back);
+        backRow.setAlignment(Pos.CENTER);
+
+        VBox card = new VBox(10, headerBox, searchBox, bookLists, backRow);
+        card.getStyleClass().add("search-feature-card");
+        card.setAlignment(Pos.TOP_CENTER);
+        card.setFillWidth(false);
+        card.setPrefWidth(SEARCH_CARD_WIDTH);
+        card.setMaxWidth(SEARCH_CARD_WIDTH);
+        
+        VBox.setMargin(headerBox, new Insets(2, 0, 8, 0));
+        VBox.setMargin(backRow, new Insets(8, 0, 0, 0));
+
+        content.getChildren().add(card);
 
         StackPane wrapper = new StackPane(content);
         wrapper.setPadding(new Insets(20, 16, 22, 16));
@@ -188,11 +216,18 @@ public class KioskSearchBookPanel {
         
         Label titleLabel = new Label(title);
         titleLabel.getStyleClass().add("book-card-title");
+        titleLabel.setWrapText(true);
+        titleLabel.setMaxWidth(Double.MAX_VALUE);
 
         Label subtitleLabel = new Label(author + " • " + publisher + " • " + year);
-        subtitleLabel.getStyleClass().add("book-card-subttile");
+        subtitleLabel.getStyleClass().add("book-card-subtitle");
+        subtitleLabel.setWrapText(true);
+        subtitleLabel.setMaxWidth(Double.MAX_VALUE);
 
         VBox details = new VBox(8);
+        details.setAlignment(Pos.CENTER_LEFT);
+        details.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(details, Priority.ALWAYS);
 
         Label categoryPill = new Label(category);
         categoryPill.getStyleClass().add("book-card-category");
@@ -207,6 +242,7 @@ public class KioskSearchBookPanel {
 
         HBox infoRow = new HBox(15);
         infoRow.setAlignment(Pos.CENTER_LEFT);
+        infoRow.setMaxWidth(Double.MAX_VALUE);
 
         infoRow.getChildren().addAll(categoryPill, shelfLabel, availableCopiesLabel);
         details.getChildren().addAll(titleLabel, subtitleLabel, infoRow);
@@ -215,6 +251,8 @@ public class KioskSearchBookPanel {
         card.setPadding(new Insets(15));
         card.setAlignment(Pos.CENTER_LEFT);
         card.getStyleClass().add("search-book-card");
+        card.setMaxWidth(Double.MAX_VALUE);
+        card.setMinHeight(110);
         card.getChildren().addAll(cover, details);
         return card;
     }

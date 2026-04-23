@@ -112,7 +112,7 @@ public class KioskFeedbackFxPanel {
         });
 
         Button submitButton = new Button("Kirim Feedback");
-        submitButton.getStyleClass().add("visit-submit-button");
+        submitButton.getStyleClass().addAll("visit-submit-button", "feedback-submit-button");
         subjectField.setPrefWidth(FEEDBACK_FORM_WIDTH);
         subjectField.setMaxWidth(FEEDBACK_FORM_WIDTH);
 
