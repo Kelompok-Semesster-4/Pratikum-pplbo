@@ -115,6 +115,13 @@ public class LoanManagementPanel {
         updateSubtitle();
     }
 
+    public void showMemberVisitTab() {
+        if (root == null) {
+            create();
+        }
+        switchMode(LoanViewMode.MEMBER_VISIT);
+    }
+
     private VBox buildContent() {
         VBox content = new VBox(16);
         content.getStyleClass().add("loan-management-content");

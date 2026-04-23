@@ -818,6 +818,14 @@ class AdminDashboardFxApp extends Application {
         loanManagementSectionView.refreshData();
     }
 
+    private void showLoanManagementMemberVisitSection() {
+        setActiveMenu("Peminjaman & Pengembalian");
+        showLoanManagementSection();
+        if (loanManagementSectionView != null) {
+            loanManagementSectionView.showMemberVisitTab();
+        }
+    }
+
     private void setTopbarTitle(String title) {
         if (topbarTitleLabel != null) {
             topbarTitleLabel.setText(safeValue(title));
@@ -1386,6 +1394,11 @@ class AdminDashboardFxApp extends Application {
     }
 
     private void openFxSection(String menuName) {
+        if ("Kunjungan Hari Ini".equals(menuName)) {
+            showLoanManagementMemberVisitSection();
+            return;
+        }
+
         setActiveMenu(menuName);
 
         if ("Dashboard".equals(menuName)) {
