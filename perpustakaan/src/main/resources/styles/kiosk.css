@@ -183,7 +183,15 @@
 
 .visit-form-box {
   -fx-spacing: 8;
-  -fx-max-width: 320;
+  -fx-max-width: 560;
+  -fx-padding: 28 30 22 30;
+  -fx-background-color: linear-gradient(to bottom right, #ffffff 0%, #f8fbff 55%, #fdf7ff 100%);
+  -fx-background-radius: 18;
+  -fx-background-insets: 0;
+  -fx-border-color: #dbe7ff;
+  -fx-border-width: 1;
+  -fx-border-radius: 18;
+  -fx-effect: dropshadow(gaussian, rgba(30, 41, 59, 0.10), 20, 0.10, 0, 8);
 }
 
 .visit-label {
@@ -202,6 +210,76 @@
   -fx-border-width: 1.4;
   -fx-padding: 10 14 10 14;
   -fx-pref-height: 42;
+}
+
+.visit-message-area {
+  -fx-pref-height: 118;
+  -fx-min-height: 118;
+  -fx-max-height: 118;
+  -fx-background-color: #ffffff;
+  -fx-background-radius: 12;
+  -fx-background-insets: 0;
+  -fx-padding: 10 12 10 12;
+}
+
+.visit-message-area .scroll-pane,
+.visit-message-area .viewport,
+.visit-message-area .content {
+  -fx-background-color: transparent;
+  -fx-background-insets: 0;
+  -fx-background-radius: 0;
+  -fx-border-color: transparent;
+  -fx-border-width: 0;
+  -fx-padding: 0;
+}
+
+.visit-message-area > .scroll-pane,
+.visit-message-area > .scroll-pane > .viewport,
+.visit-message-area:focused > .scroll-pane,
+.visit-message-area:focused > .scroll-pane > .viewport,
+.visit-message-area:focused .content {
+  -fx-background-color: transparent;
+  -fx-background-insets: 0;
+  -fx-border-color: transparent;
+  -fx-border-width: 0;
+}
+
+.visit-message-area:focused,
+.visit-message-area:hover,
+.visit-message-area:focused:hover {
+  -fx-background-color: #ffffff;
+  -fx-background-radius: 12;
+  -fx-background-insets: 0;
+}
+
+.visit-message-area .text {
+  -fx-background-color: transparent;
+}
+
+.visit-message-area .scroll-bar:horizontal,
+.visit-message-area .scroll-bar:vertical {
+  -fx-pref-width: 0;
+  -fx-pref-height: 0;
+  -fx-max-width: 0;
+  -fx-max-height: 0;
+  -fx-opacity: 0;
+  -fx-padding: 0;
+}
+
+.visit-message-area .scroll-bar:horizontal .track,
+.visit-message-area .scroll-bar:vertical .track,
+.visit-message-area .scroll-bar:horizontal .thumb,
+.visit-message-area .scroll-bar:vertical .thumb,
+.visit-message-area .scroll-bar:horizontal .increment-button,
+.visit-message-area .scroll-bar:horizontal .decrement-button,
+.visit-message-area .scroll-bar:vertical .increment-button,
+.visit-message-area .scroll-bar:vertical .decrement-button,
+.visit-message-area .scroll-bar:horizontal .increment-arrow,
+.visit-message-area .scroll-bar:horizontal .decrement-arrow,
+.visit-message-area .scroll-bar:vertical .increment-arrow,
+.visit-message-area .scroll-bar:vertical .decrement-arrow {
+  -fx-background-color: transparent;
+  -fx-padding: 0;
 }
 
 .visit-submit-button {
