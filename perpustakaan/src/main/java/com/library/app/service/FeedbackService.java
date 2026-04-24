@@ -23,14 +23,14 @@ public class FeedbackService {
     }
 
     public Feedback registerFeedback(Long memberId, String senderName, String subject, int rating, String message) {
-        ValidationUtil.requireNotBlank(senderName, "Nama pengirim wajib diisi.");
+        String finalSenderName = (senderName == null || senderName.trim().isEmpty()) ? "Anonim" : senderName.trim();
         ValidationUtil.requireNotBlank(message, "Pesan feedback wajib diisi.");
         String normalizedSubject = normalizeSubject(subject, message);
         int normalizedRating = normalizeRating(rating);
 
         Feedback feedback = new Feedback();
         feedback.setMemberId(memberId);
-        feedback.setSenderName(senderName.trim());
+        feedback.setSenderName(finalSenderName);
         feedback.setSubject(normalizedSubject);
         feedback.setRating(normalizedRating);
         feedback.setMessage(message.trim());
