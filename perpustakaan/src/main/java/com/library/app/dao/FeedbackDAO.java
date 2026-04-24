@@ -55,6 +55,27 @@ public class FeedbackDAO {
         }
     }
 
+    public Feedback findById(Long feedbackId) {
+        String sql = """
+                SELECT id, member_id, sender_name, subject, rating, message, status, response_note, created_at, responded_at
+                FROM feedbacks
+                WHERE id = ?
+                LIMIT 1
+                """;
+        try (Connection connection = DBConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setLong(1, feedbackId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return map(resultSet);
+                }
+                return null;
+            }
+        } catch (SQLException exception) {
+            throw new RuntimeException("Gagal memuat detail feedback.", exception);
+        }
+    }
+
     public void markAsRead(Long feedbackId) {
         String sql = "UPDATE feedbacks SET status = ? WHERE id = ? AND status = ?";
         try (Connection connection = DBConnection.getConnection();
@@ -69,13 +90,17 @@ public class FeedbackDAO {
     }
 
     public void respond(Long feedbackId, String responseNote) {
-        String sql = "UPDATE feedbacks SET status = ?, response_note = ?, responded_at = CURRENT_TIMESTAMP WHERE id = ?";
+        String sql = "UPDATE feedbacks SET status = ?, response_note = ?, responded_at = CURRENT_TIMESTAMP WHERE id = ? AND status <> ?";
         try (Connection connection = DBConnection.getConnection();
                 PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, FeedbackStatus.RESPONDED.name());
             statement.setString(2, responseNote);
             statement.setLong(3, feedbackId);
-            statement.executeUpdate();
+            statement.setString(4, FeedbackStatus.RESPONDED.name());
+            int updatedRows = statement.executeUpdate();
+            if (updatedRows == 0) {
+                throw new IllegalStateException("Feedback ini sudah pernah direspons.");
+            }
         } catch (SQLException exception) {
             throw new RuntimeException("Gagal menyimpan respons feedback.", exception);
         }
