@@ -54,7 +54,8 @@ public class LoanManagementPanel {
     private static final DateTimeFormatter UI_DATE_FORMAT = DateTimeFormatter.ofPattern("dd-MM-yyyy");
     private static final DateTimeFormatter MODAL_SOURCE_DATE_FORMAT = DateTimeFormatter.ofPattern("dd-MM-yyyy");
     private static final DateTimeFormatter MODAL_DB_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    private static final DateTimeFormatter MODAL_RETURN_DATE_FORMAT = DateTimeFormatter.ofPattern("dd MMM yyyy", ID_LOCALE);
+    private static final DateTimeFormatter MODAL_RETURN_DATE_FORMAT = DateTimeFormatter.ofPattern("dd MMM yyyy",
+            ID_LOCALE);
     private static final DateTimeFormatter VISIT_TABLE_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final DateTimeFormatter VISIT_TABLE_TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
     private static final double MODAL_WIDTH = 560;
@@ -176,20 +177,19 @@ public class LoanManagementPanel {
         guestVisitTabButton.getStyleClass().add("loan-tab-button");
 
         configureTabButtonGraphic(activeTabButton,
-            "M3 4h7a3 3 0 0 1 2 2v10a2 2 0 0 0-2-2H3z M21 4h-7a3 3 0 0 0-2 2v10a2 2 0 0 1 2-2h7z");
+                "M3 4h7a3 3 0 0 1 2 2v10a2 2 0 0 0-2-2H3z M21 4h-7a3 3 0 0 0-2 2v10a2 2 0 0 1 2-2h7z");
         configureTabButtonGraphic(returnedTabButton,
-            "M4 5v6h6 M4 11a8 8 0 1 0 2.4-5.7");
+                "M20 11H8.8l3.6-3.6L11 6l-6 6l6 6l1.4-1.4L8.8 13H20z");
         configureTabButtonGraphic(memberVisitTabButton,
-            "M12 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6 M6 20a6 6 0 0 1 12 0");
+                "M12 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6 M6 20a6 6 0 0 1 12 0");
         configureTabButtonGraphic(guestVisitTabButton,
-            "M11 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6 M5 20a6 6 0 0 1 12 0 M18 8h4 M20 6v4");
+                "M11 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6 M5 20a6 6 0 0 1 12 0 M18 8h4 M20 6v4");
 
         tabsRow.getChildren().addAll(
                 activeTabButton,
                 returnedTabButton,
                 memberVisitTabButton,
-                guestVisitTabButton
-        );
+                guestVisitTabButton);
 
         HBox toolbar = new HBox(12);
         toolbar.getStyleClass().addAll("list-card", "loan-toolbar-card");
@@ -200,7 +200,8 @@ public class LoanManagementPanel {
         searchField.getStyleClass().add("loan-search-input");
 
         SVGPath searchIconSvg = new SVGPath();
-        searchIconSvg.setContent("M11 19a8 8 0 1 1 5.293-2.707l4.207 4.207-1.414 1.414-4.207-4.207A7.963 7.963 0 0 1 11 19zm0-2a6 6 0 1 0 0-12 6 6 0 0 0 0 12z");
+        searchIconSvg.setContent(
+                "M11 19a8 8 0 1 1 5.293-2.707l4.207 4.207-1.414 1.414-4.207-4.207A7.963 7.963 0 0 1 11 19zm0-2a6 6 0 1 0 0-12 6 6 0 0 0 0 12z");
         searchIconSvg.getStyleClass().add("loan-search-icon-svg");
         StackPane iconWrapper = new StackPane(searchIconSvg);
         iconWrapper.setMinWidth(20);
@@ -349,8 +350,7 @@ public class LoanManagementPanel {
                     formatDate(loan.getDueDate()),
                     formatDate(loan.getReturnDate()),
                     fineText,
-                    statusText
-            ));
+                    statusText));
         }
 
         allRows.setAll(rows);
@@ -366,8 +366,7 @@ public class LoanManagementPanel {
         }
 
         List<LoanRow> filtered = allRows.stream()
-                .filter(row ->
-                        contains(row.memberCode(), keyword) ||
+                .filter(row -> contains(row.memberCode(), keyword) ||
                         contains(row.memberName(), keyword) ||
                         contains(row.copyCode(), keyword) ||
                         contains(row.bookTitle(), keyword))
@@ -399,8 +398,7 @@ public class LoanManagementPanel {
                         safeText(visit.getPurpose()),
                         formatVisitTime(visit.getCheckInTime()),
                         formatVisitTime(visit.getCheckOutTime()),
-                        resolveVisitStatusText(visit)
-                ))
+                        resolveVisitStatusText(visit)))
                 .toList();
 
         allVisitRows.setAll(rows);
@@ -416,8 +414,7 @@ public class LoanManagementPanel {
         }
 
         List<VisitRow> filtered = allVisitRows.stream()
-                .filter(row ->
-                        contains(row.name(), keyword) ||
+                .filter(row -> contains(row.name(), keyword) ||
                         contains(row.identifier(), keyword) ||
                         contains(row.institution(), keyword) ||
                         contains(row.purpose(), keyword) ||
@@ -467,7 +464,11 @@ public class LoanManagementPanel {
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty || item == null) { setGraphic(null); setText(null); return; }
+                if (empty || item == null) {
+                    setGraphic(null);
+                    setText(null);
+                    return;
+                }
                 Label label = new Label(item);
                 label.getStyleClass().add("loan-book-text");
                 label.setWrapText(true);
@@ -499,7 +500,11 @@ public class LoanManagementPanel {
                 @Override
                 protected void updateItem(String item, boolean empty) {
                     super.updateItem(item, empty);
-                    if (empty || item == null) { setGraphic(null); setText(null); return; }
+                    if (empty || item == null) {
+                        setGraphic(null);
+                        setText(null);
+                        return;
+                    }
                     Label label;
                     if (item.equals("-") || item.equals("Rp0") || item.equals("Rp0.00")) {
                         label = new Label("-");
@@ -524,7 +529,11 @@ public class LoanManagementPanel {
                 @Override
                 protected void updateItem(LoanRow item, boolean empty) {
                     super.updateItem(item, empty);
-                    if (empty || item == null) { setGraphic(null); setText(null); return; }
+                    if (empty || item == null) {
+                        setGraphic(null);
+                        setText(null);
+                        return;
+                    }
                     Button returnBtn = new Button("Proses Kembali");
                     returnBtn.getStyleClass().add("loan-return-button");
                     returnBtn.setOnAction(event -> openReturnModal(item));
@@ -537,11 +546,11 @@ public class LoanManagementPanel {
             actionColumn.setPrefWidth(135);
 
             mainTable.getColumns().setAll(
-                    memberColumn, titleColumn, loanDateColumn, dueDateColumn, statusColumn, fineColumn, actionColumn
-            );
+                    memberColumn, titleColumn, loanDateColumn, dueDateColumn, statusColumn, fineColumn, actionColumn);
         } else {
             TableColumn<Object, String> returnDateColumn = new TableColumn<>("TGL KEMBALI");
-            returnDateColumn.setCellValueFactory(cell -> new SimpleStringProperty(((LoanRow) cell.getValue()).returnDate()));
+            returnDateColumn
+                    .setCellValueFactory(cell -> new SimpleStringProperty(((LoanRow) cell.getValue()).returnDate()));
             returnDateColumn.setCellFactory(column -> centeredTextCell("loan-date-text"));
             returnDateColumn.setPrefWidth(110);
 
@@ -551,7 +560,11 @@ public class LoanManagementPanel {
                 @Override
                 protected void updateItem(String item, boolean empty) {
                     super.updateItem(item, empty);
-                    if (empty || item == null) { setGraphic(null); setText(null); return; }
+                    if (empty || item == null) {
+                        setGraphic(null);
+                        setText(null);
+                        return;
+                    }
                     Label label;
                     if (item.equals("-") || item.equals("Rp0") || item.equals("Rp0.00")) {
                         label = new Label("-");
@@ -570,8 +583,7 @@ public class LoanManagementPanel {
 
             TableColumn<Object, String> statusColumn = createLoanStatusColumn();
             mainTable.getColumns().setAll(
-                    memberColumn, titleColumn, loanDateColumn, returnDateColumn, fineColumn, statusColumn
-            );
+                    memberColumn, titleColumn, loanDateColumn, returnDateColumn, fineColumn, statusColumn);
         }
 
         updateMainTableItems();
@@ -640,8 +652,7 @@ public class LoanManagementPanel {
             statusColumn.setPrefWidth(130);
 
             mainTable.getColumns().setAll(
-                    visitorColumn, nimColumn, dateColumn, inColumn, outColumn, statusColumn
-            );
+                    visitorColumn, nimColumn, dateColumn, inColumn, outColumn, statusColumn);
 
             updateMainTableItems();
             return;
@@ -654,7 +665,8 @@ public class LoanManagementPanel {
         nameColumn.setPrefWidth(190);
 
         TableColumn<Object, String> institutionColumn = new TableColumn<>("INSTANSI");
-        institutionColumn.setCellValueFactory(cell -> new SimpleStringProperty(((VisitRow) cell.getValue()).institution()));
+        institutionColumn
+                .setCellValueFactory(cell -> new SimpleStringProperty(((VisitRow) cell.getValue()).institution()));
         institutionColumn.setCellFactory(column -> centeredWrappedTextCell("loan-book-text"));
         institutionColumn.setPrefWidth(160);
 
@@ -684,13 +696,12 @@ public class LoanManagementPanel {
         statusColumn.setPrefWidth(110);
 
         mainTable.getColumns().setAll(
-                nameColumn, institutionColumn, purposeColumn, dateColumn, inColumn, outColumn, statusColumn
-        );
+                nameColumn, institutionColumn, purposeColumn, dateColumn, inColumn, outColumn, statusColumn);
 
         updateMainTableItems();
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     private void updateMainTableItems() {
         ObservableList source = (currentMode == LoanViewMode.ACTIVE || currentMode == LoanViewMode.RETURNED)
                 ? visibleRows
@@ -932,9 +943,11 @@ public class LoanManagementPanel {
     }
 
     private void openReturnModal(LoanRow loanRow) {
-        if (modalOverlay != null) return;
+        if (modalOverlay != null)
+            return;
         StackPane host = resolveModalHost();
-        if (host == null) return;
+        if (host == null)
+            return;
         modalOverlay = buildReturnModal(loanRow);
         modalHost = host;
         modalHost.getChildren().add(modalOverlay);
@@ -1046,8 +1059,7 @@ public class LoanManagementPanel {
                 FxFeedback.showSuccessToast(
                         FxFeedback.resolveHost(root),
                         "Buku berhasil dikembalikan.",
-                        new Insets(84, 24, 0, 0)
-                );
+                        new Insets(84, 24, 0, 0));
             } catch (Exception ex) {
                 showModalInlineError(errorToast, errorMessageLabel, resolveErrorMessage(ex));
             }
@@ -1095,10 +1107,10 @@ public class LoanManagementPanel {
         body.getChildren().add(buildModalField("Kode Anggota", memberCodeInput));
         body.getChildren().add(buildModalField("ISBN Buku", isbnInput));
 
-        memberCodeInput.textProperty().addListener((obs, oldValue, newValue) ->
-                hideModalInlineError(errorToast, errorMessageLabel));
-        isbnInput.textProperty().addListener((obs, oldValue, newValue) ->
-                hideModalInlineError(errorToast, errorMessageLabel));
+        memberCodeInput.textProperty()
+                .addListener((obs, oldValue, newValue) -> hideModalInlineError(errorToast, errorMessageLabel));
+        isbnInput.textProperty()
+                .addListener((obs, oldValue, newValue) -> hideModalInlineError(errorToast, errorMessageLabel));
 
         HBox footer = buildModalFooter();
 
@@ -1139,12 +1151,12 @@ public class LoanManagementPanel {
         body.getChildren().add(buildModalField("Instansi", institutionInput));
         body.getChildren().add(buildModalField("Keperluan", purposeInput));
 
-        guestNameInput.textProperty().addListener((obs, oldValue, newValue) ->
-                hideModalInlineError(errorToast, errorMessageLabel));
-        institutionInput.textProperty().addListener((obs, oldValue, newValue) ->
-                hideModalInlineError(errorToast, errorMessageLabel));
-        purposeInput.textProperty().addListener((obs, oldValue, newValue) ->
-                hideModalInlineError(errorToast, errorMessageLabel));
+        guestNameInput.textProperty()
+                .addListener((obs, oldValue, newValue) -> hideModalInlineError(errorToast, errorMessageLabel));
+        institutionInput.textProperty()
+                .addListener((obs, oldValue, newValue) -> hideModalInlineError(errorToast, errorMessageLabel));
+        purposeInput.textProperty()
+                .addListener((obs, oldValue, newValue) -> hideModalInlineError(errorToast, errorMessageLabel));
 
         HBox footer = buildModalFooter();
 
@@ -1157,8 +1169,7 @@ public class LoanManagementPanel {
                 String message = visitService.recordGuestVisit(
                         guestNameInput.getText().trim(),
                         institutionInput.getText().trim(),
-                        purposeInput.getText().trim()
-                );
+                        purposeInput.getText().trim());
                 refreshData();
                 closeModal();
                 showInfo(message);
@@ -1237,12 +1248,11 @@ public class LoanManagementPanel {
         VBox.setMargin(toast, new Insets(6, 24, 2, 24));
         toast.setStyle(
                 "-fx-background-color: #fef2f2; " +
-                "-fx-border-color: #fecaca; " +
-                "-fx-border-width: 1; " +
-                "-fx-border-radius: 12; " +
-                "-fx-background-radius: 12; " +
-                "-fx-padding: 12 14 12 14;"
-        );
+                        "-fx-border-color: #fecaca; " +
+                        "-fx-border-width: 1; " +
+                        "-fx-border-radius: 12; " +
+                        "-fx-background-radius: 12; " +
+                        "-fx-padding: 12 14 12 14;");
         toast.getProperties().put("messageLabel", messageLabel);
         closeLabel.setOnMouseClicked(event -> hideModalInlineError(toast, messageLabel));
         return toast;
@@ -1376,8 +1386,7 @@ public class LoanManagementPanel {
         FxFeedback.showSuccessToast(
                 FxFeedback.resolveHost(root),
                 message,
-                new Insets(84, 24, 0, 0)
-        );
+                new Insets(84, 24, 0, 0));
     }
 
     private void showError(String message) {
@@ -1385,8 +1394,7 @@ public class LoanManagementPanel {
                 root,
                 message,
                 Pos.TOP_CENTER,
-                new Insets(20, 0, 0, 0)
-        );
+                new Insets(20, 0, 0, 0));
     }
 
     private record LoanRow(
@@ -1398,8 +1406,7 @@ public class LoanManagementPanel {
             String dueDate,
             String returnDate,
             String fineAmount,
-            String status
-    ) {
+            String status) {
     }
 
     private record VisitRow(
@@ -1414,7 +1421,6 @@ public class LoanManagementPanel {
             String purpose,
             String checkIn,
             String checkOut,
-            String status
-    ) {
+            String status) {
     }
 }
