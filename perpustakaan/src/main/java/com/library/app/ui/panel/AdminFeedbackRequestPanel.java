@@ -7,6 +7,7 @@ import com.library.app.model.enums.FeedbackStatus;
 import com.library.app.model.enums.RequestStatus;
 import com.library.app.service.FeedbackService;
 import com.library.app.service.ProcurementService;
+import javafx.animation.PauseTransition;
 import javafx.beans.binding.Bindings;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -31,6 +32,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
+import javafx.util.Duration;
 
 public class AdminFeedbackRequestPanel {
     private static final double FEEDBACK_DETAIL_BASELINE_HEIGHT = 520;
@@ -187,6 +189,11 @@ public class AdminFeedbackRequestPanel {
         detailScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         detailScrollPane.setStyle("-fx-background-color: transparent; -fx-background-insets: 0;");
         HBox.setHgrow(detailScrollPane, Priority.ALWAYS);
+        detailScrollPane.viewportBoundsProperty().addListener((obs, oldBounds, newBounds) -> {
+            if (newBounds != null) {
+                detailContainer.setMinHeight(newBounds.getHeight());
+            }
+        });
 
         leftPane.prefHeightProperty().bind(detailScrollPane.heightProperty());
         leftPane.minHeightProperty().bind(detailScrollPane.heightProperty());
@@ -519,6 +526,9 @@ public class AdminFeedbackRequestPanel {
         heading.setMaxWidth(Double.MAX_VALUE);
         heading.setStyle("-fx-font-size: 24px; -fx-font-weight: 800; -fx-text-fill: #0F172A;");
 
+        HBox inlineErrorToast = createInlineDetailErrorToast();
+        Label inlineErrorMessage = (Label) inlineErrorToast.getProperties().get("messageLabel");
+
         FlowPane metaRow = new FlowPane();
         metaRow.setHgap(10);
         metaRow.setVgap(10);
@@ -564,17 +574,31 @@ public class AdminFeedbackRequestPanel {
         noteArea.setPrefRowCount(5);
         noteArea.setStyle(textAreaStyle());
         noteArea.getStyleClass().add("admin-textarea");
+        boolean alreadyReviewed = selectedRequest.getStatus() != RequestStatus.PENDING
+                || selectedRequest.getRespondedAt() != null;
+        noteArea.setEditable(!alreadyReviewed);
+        noteArea.setDisable(alreadyReviewed);
 
         HBox buttonRow = new HBox(12);
         buttonRow.setAlignment(Pos.CENTER_LEFT);
 
         Button rejectButton = new Button("Tolak");
         rejectButton.setStyle(dangerButtonStyle());
-        rejectButton.setOnAction(event -> reviewRequest(RequestStatus.REJECTED, noteArea.getText()));
+        rejectButton.setDisable(alreadyReviewed);
+        rejectButton.setOnAction(event -> reviewRequest(
+                RequestStatus.REJECTED,
+                noteArea.getText(),
+                inlineErrorToast,
+                inlineErrorMessage));
 
         Button approveButton = new Button("Setujui");
         approveButton.setStyle(primaryButtonStyle());
-        approveButton.setOnAction(event -> reviewRequest(RequestStatus.APPROVED, noteArea.getText()));
+        approveButton.setDisable(alreadyReviewed);
+        approveButton.setOnAction(event -> reviewRequest(
+                RequestStatus.APPROVED,
+                noteArea.getText(),
+                inlineErrorToast,
+                inlineErrorMessage));
 
         buttonRow.getChildren().addAll(rejectButton, approveButton);
 
@@ -586,21 +610,30 @@ public class AdminFeedbackRequestPanel {
 
         reviewCard.getChildren().addAll(reviewTitle, noteArea, buttonRow);
 
-        detailContainer.getChildren().addAll(heading, metaRow, detailGrid, reviewCard);
+        detailContainer.getChildren().addAll(heading, inlineErrorToast, metaRow, detailGrid, reviewCard);
         if (detailScrollPane != null) {
             detailScrollPane.setVvalue(0);
         }
     }
 
-    private void reviewRequest(RequestStatus status, String responseNote) {
+    private void reviewRequest(RequestStatus status,
+                               String responseNote,
+                               HBox inlineErrorToast,
+                               Label inlineErrorMessage) {
         if (selectedRequest == null) {
             return;
         }
-        procurementService.reviewRequest(selectedRequest.getId(), status, responseNote);
-        refreshData();
-        showInfo(status == RequestStatus.APPROVED
-                ? "Permintaan buku disetujui."
-                : "Permintaan buku ditolak.");
+        try {
+            hideInlineDetailError(inlineErrorToast, inlineErrorMessage);
+            procurementService.reviewRequest(selectedRequest.getId(), status, responseNote);
+            selectedRequest = null;
+            refreshData();
+            showInfo(status == RequestStatus.APPROVED
+                    ? "Permintaan buku disetujui."
+                    : "Permintaan buku ditolak.");
+        } catch (IllegalArgumentException exception) {
+            showInlineDetailError(inlineErrorToast, inlineErrorMessage, exception.getMessage());
+        }
     }
 
     private VBox buildInfoCard(String labelText, String valueText) {
@@ -854,17 +887,31 @@ public class AdminFeedbackRequestPanel {
         if (toast == null || messageLabel == null) {
             return;
         }
+        PauseTransition previousDelay = (PauseTransition) toast.getProperties().get("autoHideDelay");
+        if (previousDelay != null) {
+            previousDelay.stop();
+        }
         messageLabel.setText(message == null ? "" : message);
         toast.setManaged(true);
         toast.setVisible(true);
         if (detailScrollPane != null) {
             detailScrollPane.setVvalue(0);
         }
+
+        PauseTransition delay = new PauseTransition(Duration.millis(3500));
+        delay.setOnFinished(event -> hideInlineDetailError(toast, messageLabel));
+        toast.getProperties().put("autoHideDelay", delay);
+        delay.play();
     }
 
     private void hideInlineDetailError(HBox toast, Label messageLabel) {
         if (toast == null || messageLabel == null) {
             return;
+        }
+        PauseTransition previousDelay = (PauseTransition) toast.getProperties().get("autoHideDelay");
+        if (previousDelay != null) {
+            previousDelay.stop();
+            toast.getProperties().remove("autoHideDelay");
         }
         messageLabel.setText("");
         toast.setVisible(false);

@@ -69,14 +69,40 @@ public class ProcurementRequestDAO {
         }
     }
 
+    public ProcurementRequest findById(Long requestId) {
+        String sql = """
+                SELECT id, member_id, requester_name, title, author, publisher, publication_year, isbn,
+                       note, status, response_note, created_at, responded_at
+                FROM procurement_requests
+                WHERE id = ?
+                LIMIT 1
+                """;
+        try (Connection connection = DBConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setLong(1, requestId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return map(resultSet);
+                }
+                return null;
+            }
+        } catch (SQLException exception) {
+            throw new RuntimeException("Gagal memuat detail permintaan pengadaan.", exception);
+        }
+    }
+
     public void reviewRequest(Long requestId, RequestStatus status, String responseNote) {
-        String sql = "UPDATE procurement_requests SET status = ?, response_note = ?, responded_at = CURRENT_TIMESTAMP WHERE id = ?";
+        String sql = "UPDATE procurement_requests SET status = ?, response_note = ?, responded_at = CURRENT_TIMESTAMP WHERE id = ? AND status = ?";
         try (Connection connection = DBConnection.getConnection();
                 PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, status.name());
             statement.setString(2, responseNote);
             statement.setLong(3, requestId);
-            statement.executeUpdate();
+            statement.setString(4, RequestStatus.PENDING.name());
+            int updatedRows = statement.executeUpdate();
+            if (updatedRows == 0) {
+                throw new IllegalStateException("Permintaan buku ini sudah pernah direview.");
+            }
         } catch (SQLException exception) {
             throw new RuntimeException("Gagal memperbarui status permintaan.", exception);
         }
