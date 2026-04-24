@@ -81,7 +81,16 @@ public class ProcurementService {
     }
 
     public void reviewRequest(Long requestId, RequestStatus status, String responseNote) {
+        ValidationUtil.requireNotBlank(responseNote, "Catatan review tidak boleh kosong.");
+        ProcurementRequest request = requestDAO.findById(requestId);
+        if (request == null) {
+            throw new IllegalArgumentException("Permintaan buku tidak ditemukan.");
+        }
+        if (request.getStatus() != RequestStatus.PENDING || request.getRespondedAt() != null) {
+            throw new IllegalArgumentException("Permintaan buku ini sudah pernah direview.");
+        }
         requestDAO.reviewRequest(requestId, status, normalizeOptional(responseNote));
+        GlobalEventPublisher.publishProcurementUpdated();
     }
 
     private String normalizeOptional(String value) {
