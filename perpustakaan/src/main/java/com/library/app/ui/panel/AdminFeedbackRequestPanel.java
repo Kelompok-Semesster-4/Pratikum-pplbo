@@ -2,6 +2,7 @@ package com.library.app.ui.panel;
 
 import com.library.app.model.Feedback;
 import com.library.app.model.ProcurementRequest;
+import com.library.app.ui.util.FxFeedback;
 import com.library.app.model.enums.FeedbackStatus;
 import com.library.app.model.enums.RequestStatus;
 import com.library.app.service.FeedbackService;
@@ -66,10 +67,10 @@ public class AdminFeedbackRequestPanel {
         if (!initialized) {
             root.setPadding(Insets.EMPTY);
             root.setCenter(buildContent());
-            
+
             com.library.app.util.GlobalEventPublisher.addFeedbackListener(this::refreshData);
             com.library.app.util.GlobalEventPublisher.addProcurementListener(this::refreshData);
-            
+
             initialized = true;
         }
         refreshData();
@@ -98,6 +99,16 @@ public class AdminFeedbackRequestPanel {
 
         renderTabButtons();
         renderBody();
+    }
+
+    public void showFeedbackTab() {
+        activeTab = TabType.FEEDBACK;
+        refreshData();
+    }
+
+    public void showProcurementTab() {
+        activeTab = TabType.PROCUREMENT;
+        refreshData();
     }
 
     private Node buildContent() {
@@ -739,10 +750,10 @@ public class AdminFeedbackRequestPanel {
     }
 
     private void showInfo(String message) {
-        new Alert(Alert.AlertType.INFORMATION, message, ButtonType.OK).showAndWait();
+        FxFeedback.showSuccessToastCentered(FxFeedback.resolveHost(root), message);
     }
 
     private void showError(String message) {
-        new Alert(Alert.AlertType.ERROR, message, ButtonType.OK).showAndWait();
+        FxFeedback.showErrorToastCentered(FxFeedback.resolveHost(root), message);
     }
 }
