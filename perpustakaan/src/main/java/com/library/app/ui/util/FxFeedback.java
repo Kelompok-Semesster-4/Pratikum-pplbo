@@ -65,106 +65,97 @@ public final class FxFeedback {
     }
 
     private static void showToast(StackPane host, String message, boolean success, Pos alignment, Insets margin, boolean compact) {
-    if (host == null) {
-        return;
+        if (host == null) {
+            return;
+        }
+
+        host.getChildren().removeIf(node -> Boolean.TRUE.equals(node.getProperties().get("fx-toast")));
+
+        HBox toast = new HBox(compact ? 10 : 12);
+        toast.getProperties().put("fx-toast", true);
+        toast.setAlignment(Pos.CENTER_LEFT);
+        toast.setMaxWidth(Region.USE_PREF_SIZE);
+        toast.setMaxHeight(Region.USE_PREF_SIZE);
+        toast.setOpacity(0);
+
+        String bgColor = success ? "#ecfdf5" : "#fef2f2";
+        String borderColor = success ? "#a7f3d0" : "#fecaca";
+        String iconColor = success ? "#10b981" : "#ef4444";
+        String textColor = success ? "#065f46" : "#991b1b";
+
+        toast.setStyle(
+                "-fx-background-color: " + bgColor + "; " +
+                "-fx-border-color: " + borderColor + "; " +
+                "-fx-border-width: 1; " +
+                "-fx-border-radius: 6; " +
+                "-fx-background-radius: 6; " +
+                "-fx-padding: " + (compact ? "10 12;" : "12 16;")
+        );
+
+        Label icon = new Label(success ? "\u2713" : "!");
+        icon.setStyle(
+                "-fx-text-fill: " + iconColor + "; " +
+                "-fx-font-size: " + (compact ? "14px;" : "15px;") +
+                "-fx-font-weight: bold;"
+        );
+
+        Label text = new Label(message == null ? "" : message);
+        text.setWrapText(true);
+        text.setMaxWidth(compact ? 220 : 260);
+        text.setStyle(
+                "-fx-text-fill: " + textColor + "; " +
+                "-fx-font-size: " + (compact ? "13px;" : "14px;") +
+                "-fx-font-weight: 500;"
+        );
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        spacer.setMinWidth(compact ? 24 : 40);
+
+        Label closeButton = new Label("\u2715");
+        closeButton.setStyle(
+                "-fx-text-fill: " + iconColor + "; " +
+                "-fx-font-size: " + (compact ? "13px;" : "14px;") +
+                "-fx-cursor: hand;"
+        );
+
+        toast.getChildren().addAll(icon, text, spacer, closeButton);
+
+        StackPane.setAlignment(toast, alignment == null ? Pos.TOP_RIGHT : alignment);
+        StackPane.setMargin(toast, margin == null ? new Insets(20, 24, 0, 0) : margin);
+
+        host.getChildren().add(toast);
+
+        TranslateTransition slideIn = new TranslateTransition(Duration.millis(300), toast);
+        slideIn.setFromY(-40);
+        slideIn.setToY(0);
+
+        FadeTransition fadeIn = new FadeTransition(Duration.millis(300), toast);
+        fadeIn.setFromValue(0);
+        fadeIn.setToValue(1);
+
+        ParallelTransition ptIn = new ParallelTransition(slideIn, fadeIn);
+
+        TranslateTransition slideOut = new TranslateTransition(Duration.millis(300), toast);
+        slideOut.setByY(-40);
+
+        FadeTransition fadeOut = new FadeTransition(Duration.millis(300), toast);
+        fadeOut.setToValue(0);
+
+        ParallelTransition ptOut = new ParallelTransition(slideOut, fadeOut);
+        ptOut.setOnFinished(e -> host.getChildren().remove(toast));
+
+        PauseTransition delay = new PauseTransition(Duration.millis(3500));
+        delay.setOnFinished(e -> ptOut.play());
+
+        closeButton.setOnMouseClicked(e -> {
+            delay.stop();
+            ptOut.play();
+        });
+
+        ptIn.setOnFinished(e -> delay.play());
+        ptIn.play();
     }
-
-    host.getChildren().removeIf(node -> Boolean.TRUE.equals(node.getProperties().get("fx-toast")));
-
-    // Container toast
-    HBox toast = new HBox(compact ? 10 : 12);
-    toast.getProperties().put("fx-toast", true);
-    toast.setAlignment(Pos.CENTER_LEFT);
-    toast.setMaxWidth(Region.USE_PREF_SIZE);
-    toast.setMaxHeight(Region.USE_PREF_SIZE);
-    toast.setOpacity(0);
-
-    // Style mengikuti contoh kedua
-    String bgColor = success ? "#ecfdf5" : "#fef2f2";
-    String borderColor = success ? "#a7f3d0" : "#fecaca";
-    String iconColor = success ? "#10b981" : "#ef4444";
-    String textColor = success ? "#065f46" : "#991b1b";
-
-    toast.setStyle(
-        "-fx-background-color: " + bgColor + "; " +
-        "-fx-border-color: " + borderColor + "; " +
-        "-fx-border-width: 1; " +
-        "-fx-border-radius: 6; " +
-        "-fx-background-radius: 6; " +
-        "-fx-padding: " + (compact ? "10 12;" : "12 16;")
-    );
-
-    // Icon
-    Label icon = new Label(success ? "✓" : "✕");
-    icon.setStyle(
-        "-fx-text-fill: " + iconColor + "; " +
-        "-fx-font-size: " + (compact ? "14px;" : "15px;") +
-        "-fx-font-weight: bold;"
-    );
-
-    // Text
-    Label text = new Label(message == null ? "" : message);
-    text.setWrapText(true);
-    text.setMaxWidth(compact ? 220 : 260);
-    text.setStyle(
-        "-fx-text-fill: " + textColor + "; " +
-        "-fx-font-size: " + (compact ? "13px;" : "14px;") +
-        "-fx-font-weight: 500;"
-    );
-
-    // Spacer
-    Region spacer = new Region();
-    HBox.setHgrow(spacer, Priority.ALWAYS);
-    spacer.setMinWidth(compact ? 24 : 40);
-
-    // Close button
-    Label closeButton = new Label("✕");
-    closeButton.setStyle(
-        "-fx-text-fill: " + iconColor + "; " +
-        "-fx-font-size: " + (compact ? "13px;" : "14px;") +
-        "-fx-cursor: hand;"
-    );
-
-    toast.getChildren().addAll(icon, text, spacer, closeButton);
-
-    // Posisi default mengikuti fungsi kedua
-    StackPane.setAlignment(toast, alignment == null ? Pos.TOP_RIGHT : alignment);
-    StackPane.setMargin(toast, margin == null ? new Insets(20, 24, 0, 0) : margin);
-
-    host.getChildren().add(toast);
-
-    // Animasi masuk
-    TranslateTransition slideIn = new TranslateTransition(Duration.millis(300), toast);
-    slideIn.setFromY(-40);
-    slideIn.setToY(0);
-
-    FadeTransition fadeIn = new FadeTransition(Duration.millis(300), toast);
-    fadeIn.setFromValue(0);
-    fadeIn.setToValue(1);
-
-    ParallelTransition ptIn = new ParallelTransition(slideIn, fadeIn);
-
-    // Animasi keluar
-    TranslateTransition slideOut = new TranslateTransition(Duration.millis(300), toast);
-    slideOut.setByY(-40);
-
-    FadeTransition fadeOut = new FadeTransition(Duration.millis(300), toast);
-    fadeOut.setToValue(0);
-
-    ParallelTransition ptOut = new ParallelTransition(slideOut, fadeOut);
-    ptOut.setOnFinished(e -> host.getChildren().remove(toast));
-
-    PauseTransition delay = new PauseTransition(Duration.millis(3500));
-    delay.setOnFinished(e -> ptOut.play());
-
-    closeButton.setOnMouseClicked(e -> {
-        delay.stop();
-        ptOut.play();
-    });
-
-    ptIn.setOnFinished(e -> delay.play());
-    ptIn.play();
-}
 
     public static Label createFieldErrorLabel() {
         Label label = new Label();

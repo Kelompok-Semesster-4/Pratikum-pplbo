@@ -7,6 +7,7 @@ import javafx.animation.FadeTransition;
 import javafx.animation.PauseTransition;
 import javafx.animation.ParallelTransition;
 import javafx.animation.TranslateTransition;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
@@ -47,18 +48,19 @@ public class KioskProcurementFxPanel {
         BorderPane root = new BorderPane();
         root.setPadding(new Insets(8, 12, 8, 12));
 
-        ScrollPane scrollPane = new ScrollPane(buildFormCard(onBack));
+        ScrollPane scrollPane = new ScrollPane();
         scrollPane.getStyleClass().add("app-scroll");
         scrollPane.setFitToWidth(true);
         scrollPane.setStyle("-fx-background-color: transparent; -fx-background-insets: 0; -fx-padding: 0;");
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scrollPane.setContent(buildFormCard(onBack, scrollPane));
 
         root.setCenter(scrollPane);
         return root;
     }
 
-    private Node buildFormCard(Runnable onBack) {
+    private Node buildFormCard(Runnable onBack, ScrollPane scrollPane) {
         VBox wrapper = new VBox(18);
         wrapper.setAlignment(Pos.TOP_CENTER);
         wrapper.setPadding(new Insets(10, 0, 24, 0));
@@ -90,7 +92,28 @@ public class KioskProcurementFxPanel {
         subtitle.setTextAlignment(TextAlignment.CENTER);
         subtitle.setMaxWidth(560);
 
-        VBox headerBox = new VBox(8, iconShell, title, subtitle);
+        Label toastIcon = new Label("\u2713");
+        toastIcon.getStyleClass().add("visit-inline-toast-icon");
+
+        Label toastMessage = new Label();
+        toastMessage.getStyleClass().add("visit-inline-toast-message");
+        toastMessage.setWrapText(true);
+
+        Region toastSpacer = new Region();
+        HBox.setHgrow(toastSpacer, Priority.ALWAYS);
+
+        Label toastClose = new Label("\u2715");
+        toastClose.getStyleClass().add("visit-inline-toast-close");
+
+        HBox inlineToast = new HBox(10, toastIcon, toastMessage, toastSpacer, toastClose);
+        inlineToast.getStyleClass().addAll("visit-inline-toast", "visit-inline-toast-success");
+        inlineToast.setAlignment(Pos.CENTER_LEFT);
+        inlineToast.setVisible(false);
+        inlineToast.setManaged(false);
+        inlineToast.setOpacity(0);
+        inlineToast.setMaxWidth(Double.MAX_VALUE);
+
+        VBox headerBox = new VBox(8, iconShell, title, subtitle, inlineToast);
         headerBox.setAlignment(Pos.CENTER);
 
         GridPane grid = new GridPane();
@@ -155,29 +178,8 @@ public class KioskProcurementFxPanel {
         Button submitButton = new Button("Ajukan Usulan");
         submitButton.getStyleClass().addAll("visit-submit-button", "procurement-submit-button");
 
-        Label toastIcon = new Label("✓");
-        toastIcon.getStyleClass().add("visit-inline-toast-icon");
-
-        Label toastMessage = new Label();
-        toastMessage.getStyleClass().add("visit-inline-toast-message");
-        toastMessage.setWrapText(true);
-
-        Region toastSpacer = new Region();
-        HBox.setHgrow(toastSpacer, Priority.ALWAYS);
-
-        Label toastClose = new Label("✕");
-        toastClose.getStyleClass().add("visit-inline-toast-close");
-
-        HBox inlineToast = new HBox(10, toastIcon, toastMessage, toastSpacer, toastClose);
-        inlineToast.getStyleClass().addAll("visit-inline-toast", "visit-inline-toast-success");
-        inlineToast.setAlignment(Pos.CENTER_LEFT);
-        inlineToast.setVisible(false);
-        inlineToast.setManaged(false);
-        inlineToast.setOpacity(0);
-        inlineToast.setMaxWidth(Double.MAX_VALUE);
-
         toastClose.setOnMouseClicked(event -> hideInlineToast(inlineToast));
-        submitButton.setOnAction(event -> submit(inlineToast, toastIcon, toastMessage));
+        submitButton.setOnAction(event -> submit(inlineToast, toastIcon, toastMessage, scrollPane));
 
         HBox actionRow = new HBox(submitButton);
         actionRow.setAlignment(Pos.CENTER);
@@ -190,7 +192,7 @@ public class KioskProcurementFxPanel {
         HBox backRow = new HBox(backLabel);
         backRow.setAlignment(Pos.CENTER);
 
-        card.getChildren().addAll(headerBox, grid, reasonBox, helper, inlineToast, actionRow, backRow);
+        card.getChildren().addAll(headerBox, grid, reasonBox, helper, actionRow, backRow);
         wrapper.getChildren().add(card);
         return wrapper;
     }
@@ -207,7 +209,7 @@ public class KioskProcurementFxPanel {
         }
     }
 
-    private void submit(HBox inlineToast, Label toastIcon, Label toastMessage) {
+    private void submit(HBox inlineToast, Label toastIcon, Label toastMessage, ScrollPane scrollPane) {
         try {
             if (selectedMember == null) {
                 lookupMember();
@@ -234,12 +236,13 @@ public class KioskProcurementFxPanel {
                     toastIcon,
                     toastMessage,
                     "Usulan buku berhasil dikirim. Admin akan meninjau permintaan Anda.",
-                    true
+                    true,
+                    scrollPane
             );
 
             clearForm();
         } catch (IllegalArgumentException exception) {
-            showInlineToast(inlineToast, toastIcon, toastMessage, exception.getMessage(), false);
+            showInlineToast(inlineToast, toastIcon, toastMessage, exception.getMessage(), false, scrollPane);
         }
     }
 
@@ -297,17 +300,23 @@ public class KioskProcurementFxPanel {
         return area;
     }
 
-    private void showInlineToast(HBox toast, Label iconLabel, Label messageLabel, String message, boolean success) {
+    private void showInlineToast(HBox toast,
+                                 Label iconLabel,
+                                 Label messageLabel,
+                                 String message,
+                                 boolean success,
+                                 ScrollPane scrollPane) {
         toast.getStyleClass().removeAll("visit-inline-toast-success", "visit-inline-toast-error");
         toast.getStyleClass().add(success ? "visit-inline-toast-success" : "visit-inline-toast-error");
 
-        iconLabel.setText(success ? "✓" : "✕");
+        iconLabel.setText(success ? "\u2713" : "!");
         messageLabel.setText(message == null ? "" : message);
 
         toast.setManaged(true);
         toast.setVisible(true);
         toast.setOpacity(0);
         toast.setTranslateY(8);
+        scrollToTop(scrollPane);
 
         FadeTransition fadeIn = new FadeTransition(Duration.millis(220), toast);
         fadeIn.setFromValue(0);
@@ -347,5 +356,12 @@ public class KioskProcurementFxPanel {
             toast.setTranslateY(0);
         });
         out.play();
+    }
+
+    private void scrollToTop(ScrollPane scrollPane) {
+        if (scrollPane == null) {
+            return;
+        }
+        Platform.runLater(() -> scrollPane.setVvalue(0));
     }
 }

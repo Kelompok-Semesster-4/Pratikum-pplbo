@@ -1149,7 +1149,7 @@ public class LoanManagementPanel {
     }
 
     private HBox createModalInlineErrorToast() {
-        Label iconLabel = new Label("✕");
+        Label iconLabel = new Label("!");
         iconLabel.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 13px; -fx-font-weight: 700;");
 
         Label closeLabel = new Label("✕");

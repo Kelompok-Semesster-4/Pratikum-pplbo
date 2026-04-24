@@ -794,7 +794,7 @@ public class BookManagementPanel {
     }
 
     private HBox createModalInlineErrorToast() {
-        Label iconLabel = new Label("✕");
+        Label iconLabel = new Label("!");
         iconLabel.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 13px; -fx-font-weight: 700;");
 
         Label closeLabel = new Label("✕");
@@ -1294,9 +1294,8 @@ public class BookManagementPanel {
         toast.setMaxWidth(Region.USE_PREF_SIZE);
         toast.setMaxHeight(Region.USE_PREF_SIZE);
 
-        SVGPath errorIcon = new SVGPath();
-        errorIcon.setContent("M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z");
-        errorIcon.setStyle("-fx-fill: #ef4444;");
+        Label errorIcon = new Label("!");
+        errorIcon.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 18px; -fx-font-weight: 700;");
 
         Label messageLabel = new Label(message);
         messageLabel.setStyle("-fx-text-fill: #991b1b; -fx-font-size: 14px; -fx-font-weight: 500;");

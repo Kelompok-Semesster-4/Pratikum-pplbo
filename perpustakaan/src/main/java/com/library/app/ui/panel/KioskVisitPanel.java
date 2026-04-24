@@ -5,12 +5,14 @@ import javafx.animation.FadeTransition;
 import javafx.animation.PauseTransition;
 import javafx.animation.ParallelTransition;
 import javafx.animation.TranslateTransition;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -54,6 +56,31 @@ public class KioskVisitPanel {
         subtitle.setMaxWidth(500);
         subtitle.setAlignment(Pos.CENTER);
 
+        Label toastIcon = new Label("\u2713");
+        toastIcon.getStyleClass().add("visit-inline-toast-icon");
+
+        Label toastMessage = new Label();
+        toastMessage.getStyleClass().add("visit-inline-toast-message");
+        toastMessage.setWrapText(true);
+
+        Region toastSpacer = new Region();
+        HBox.setHgrow(toastSpacer, Priority.ALWAYS);
+
+        Label toastClose = new Label("\u2715");
+        toastClose.getStyleClass().add("visit-inline-toast-close");
+
+        HBox inlineToast = new HBox(10, toastIcon, toastMessage, toastSpacer, toastClose);
+        inlineToast.getStyleClass().addAll("visit-inline-toast", "visit-inline-toast-success");
+        inlineToast.setAlignment(Pos.CENTER_LEFT);
+        inlineToast.setVisible(false);
+        inlineToast.setManaged(false);
+        inlineToast.setOpacity(0);
+        inlineToast.setPrefWidth(VISIT_FORM_WIDTH);
+        inlineToast.setMaxWidth(VISIT_FORM_WIDTH);
+
+        VBox headerBox = new VBox(8, visitIconShell, title, subtitle, inlineToast);
+        headerBox.setAlignment(Pos.CENTER);
+
         Label memberCodeLabel = new Label("NIM / NIS / NIDN");
         memberCodeLabel.getStyleClass().add("visit-label");
 
@@ -68,38 +95,20 @@ public class KioskVisitPanel {
         submitButton.setPrefWidth(VISIT_FORM_WIDTH);
         submitButton.setMaxWidth(VISIT_FORM_WIDTH);
 
-        Label toastIcon = new Label("✓");
-        toastIcon.getStyleClass().add("visit-inline-toast-icon");
-
-        Label toastMessage = new Label();
-        toastMessage.getStyleClass().add("visit-inline-toast-message");
-        toastMessage.setWrapText(true);
-
-        Region toastSpacer = new Region();
-        HBox.setHgrow(toastSpacer, Priority.ALWAYS);
-
-        Label toastClose = new Label("✕");
-        toastClose.getStyleClass().add("visit-inline-toast-close");
-
-        HBox inlineToast = new HBox(10, toastIcon, toastMessage, toastSpacer, toastClose);
-        inlineToast.getStyleClass().addAll("visit-inline-toast", "visit-inline-toast-success");
-        inlineToast.setAlignment(Pos.CENTER_LEFT);
-        inlineToast.setVisible(false);
-        inlineToast.setManaged(false);
-        inlineToast.setOpacity(0);
-        inlineToast.setPrefWidth(VISIT_FORM_WIDTH);
-        inlineToast.setMaxWidth(VISIT_FORM_WIDTH);
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.getStyleClass().add("app-scroll");
+        scrollPane.setFitToWidth(true);
+        scrollPane.setStyle("-fx-background-color: transparent; -fx-background-insets: 0; -fx-padding: 0;");
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
 
         toastClose.setOnMouseClicked(event -> hideInlineToast(inlineToast));
 
-        Runnable submitAction = () -> submitVisit(memberCodeField, inlineToast, toastIcon, toastMessage);
+        Runnable submitAction = () -> submitVisit(memberCodeField, inlineToast, toastIcon, toastMessage, scrollPane);
         submitButton.setOnAction(event -> submitAction.run());
         memberCodeField.setOnAction(event -> submitAction.run());
 
-        VBox headerBox = new VBox(8, visitIconShell, title, subtitle);
-        headerBox.setAlignment(Pos.CENTER);
-
-        VBox formFields = new VBox(8, memberCodeLabel, memberCodeField, submitButton, inlineToast);
+        VBox formFields = new VBox(8, memberCodeLabel, memberCodeField, submitButton);
         formFields.setAlignment(Pos.CENTER_LEFT);
         formFields.setFillWidth(true);
         formFields.setPrefWidth(VISIT_FORM_WIDTH);
@@ -128,30 +137,41 @@ public class KioskVisitPanel {
 
         StackPane wrapper = new StackPane(content);
         wrapper.setPadding(new Insets(20, 16, 22, 16));
-        return wrapper;
+        scrollPane.setContent(wrapper);
+        return scrollPane;
     }
 
-    private void submitVisit(TextField memberCodeField, HBox inlineToast, Label toastIcon, Label toastMessage) {
+    private void submitVisit(TextField memberCodeField,
+                             HBox inlineToast,
+                             Label toastIcon,
+                             Label toastMessage,
+                             ScrollPane scrollPane) {
         try {
             String message = visitService.recordMemberVisit(memberCodeField.getText());
-            showInlineToast(inlineToast, toastIcon, toastMessage, message, true);
+            showInlineToast(inlineToast, toastIcon, toastMessage, message, true, scrollPane);
             memberCodeField.clear();
         } catch (Exception exception) {
-            showInlineToast(inlineToast, toastIcon, toastMessage, exception.getMessage(), false);
+            showInlineToast(inlineToast, toastIcon, toastMessage, exception.getMessage(), false, scrollPane);
         }
     }
 
-    private void showInlineToast(HBox toast, Label iconLabel, Label messageLabel, String message, boolean success) {
+    private void showInlineToast(HBox toast,
+                                 Label iconLabel,
+                                 Label messageLabel,
+                                 String message,
+                                 boolean success,
+                                 ScrollPane scrollPane) {
         toast.getStyleClass().removeAll("visit-inline-toast-success", "visit-inline-toast-error");
         toast.getStyleClass().add(success ? "visit-inline-toast-success" : "visit-inline-toast-error");
 
-        iconLabel.setText(success ? "✓" : "✕");
+        iconLabel.setText(success ? "\u2713" : "!");
         messageLabel.setText(message == null ? "" : message);
 
         toast.setManaged(true);
         toast.setVisible(true);
         toast.setOpacity(0);
         toast.setTranslateY(8);
+        scrollToTop(scrollPane);
 
         FadeTransition fadeIn = new FadeTransition(Duration.millis(220), toast);
         fadeIn.setFromValue(0);
@@ -191,5 +211,12 @@ public class KioskVisitPanel {
             toast.setTranslateY(0);
         });
         out.play();
+    }
+
+    private void scrollToTop(ScrollPane scrollPane) {
+        if (scrollPane == null) {
+            return;
+        }
+        Platform.runLater(() -> scrollPane.setVvalue(0));
     }
 }
