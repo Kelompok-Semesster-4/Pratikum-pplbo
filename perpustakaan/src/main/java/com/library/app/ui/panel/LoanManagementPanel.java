@@ -125,6 +125,15 @@ public class LoanManagementPanel {
         mainTable.requestFocus();
     }
 
+    public void showActiveLoanTab() {
+        if (root == null) {
+            create();
+        }
+        searchField.clear();
+        switchMode(LoanViewMode.ACTIVE);
+        mainTable.requestFocus();
+    }
+
     public void showMemberVisitTab() {
         if (root == null) {
             create();

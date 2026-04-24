@@ -657,7 +657,7 @@ class AdminDashboardFxApp extends Application {
         }
 
         if ("FEEDBACK".equalsIgnoreCase(type) || "SWING_FEEDBACK".equals(targetKey)) {
-            showFeedbackRequestSection();
+            openFxSection("Feedback & Permintaan");
             if (feedbackRequestSectionView != null) {
                 feedbackRequestSectionView.showFeedbackTab();
             }
@@ -667,7 +667,7 @@ class AdminDashboardFxApp extends Application {
         if ("PROCUREMENT".equalsIgnoreCase(type)
                 || "FX_FEEDBACK_REQUEST".equals(targetKey)
                 || "SWING_PROCUREMENT".equals(targetKey)) {
-            showFeedbackRequestSection();
+            openFxSection("Feedback & Permintaan");
             if (feedbackRequestSectionView != null) {
                 feedbackRequestSectionView.showProcurementTab();
             }
@@ -677,7 +677,7 @@ class AdminDashboardFxApp extends Application {
         if ("OVERDUE_LOAN".equalsIgnoreCase(type)
                 || "SWING_RETURN".equals(targetKey)
                 || "SWING_LOAN".equals(targetKey)) {
-            showLoanManagementSection();
+            showLoanManagementActiveSection();
             return;
         }
 
@@ -831,6 +831,14 @@ class AdminDashboardFxApp extends Application {
         showLoanManagementSection();
         if (loanManagementSectionView != null) {
             loanManagementSectionView.showMemberVisitTab();
+        }
+    }
+
+    private void showLoanManagementActiveSection() {
+        setActiveMenu("Peminjaman & Pengembalian");
+        showLoanManagementSection();
+        if (loanManagementSectionView != null) {
+            loanManagementSectionView.showActiveLoanTab();
         }
     }
 
