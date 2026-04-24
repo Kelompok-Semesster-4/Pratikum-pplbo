@@ -992,7 +992,7 @@ public class LoanManagementPanel {
 
     private StackPane buildBorrowModal() {
         TextField memberCodeInput = createModalTextField("Masukkan kode anggota");
-        TextField copyCodeInput = createModalTextField("Masukkan kode eksemplar");
+        TextField isbnInput = createModalTextField("Masukkan ISBN buku");
 
         StackPane overlay = buildBaseModalOverlay();
         VBox card = buildBaseModalCard("Catat Peminjaman");
@@ -1000,7 +1000,7 @@ public class LoanManagementPanel {
         VBox body = new VBox(16);
         body.getStyleClass().add("loan-modal-body");
         body.getChildren().add(buildModalField("Kode Anggota", memberCodeInput));
-        body.getChildren().add(buildModalField("Kode Eksemplar", copyCodeInput));
+        body.getChildren().add(buildModalField("ISBN Buku", isbnInput));
 
         HBox footer = buildModalFooter();
 
@@ -1009,7 +1009,7 @@ public class LoanManagementPanel {
         saveButton.getStyleClass().addAll("loan-modal-button", "loan-modal-button-save");
         saveButton.setOnAction(event -> {
             try {
-                loanService.borrowBook(memberCodeInput.getText().trim(), copyCodeInput.getText().trim());
+                loanService.borrowBook(memberCodeInput.getText().trim(), isbnInput.getText().trim());
                 refreshData();
                 closeModal();
                 showInfo("Transaksi peminjaman berhasil.");

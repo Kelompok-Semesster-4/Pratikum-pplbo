@@ -42,6 +42,43 @@ public class BookCopyDAO {
         }
     }
 
+    public int countAvailableByIsbn(String isbn) {
+        String sql = "SELECT COUNT(c.id) AS total " +
+                "FROM book_copies c " +
+                "JOIN books b ON b.id = c.book_id " +
+                "WHERE b.isbn = ? AND c.status = 'AVAILABLE'";
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, isbn);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                resultSet.next();
+                return resultSet.getInt("total");
+            }
+        } catch (SQLException exception) {
+            throw new RuntimeException("Gagal menghitung eksemplar tersedia berdasarkan ISBN.", exception);
+        }
+    }
+
+    public Optional<BookCopy> findFirstAvailableByIsbn(String isbn) {
+        String sql = "SELECT c.id, c.book_id, c.copy_code, c.status " +
+                "FROM book_copies c " +
+                "JOIN books b ON b.id = c.book_id " +
+                "WHERE b.isbn = ? AND c.status = 'AVAILABLE' " +
+                "ORDER BY c.copy_code LIMIT 1";
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, isbn);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return Optional.of(map(resultSet));
+                }
+            }
+            return Optional.empty();
+        } catch (SQLException exception) {
+            throw new RuntimeException("Gagal mengambil eksemplar tersedia berdasarkan ISBN.", exception);
+        }
+    }
+
     public void updateStatus(long copyId, CopyStatus status) {
         String sql = "UPDATE book_copies SET status = ? WHERE id = ?";
         try (Connection connection = DBConnection.getConnection();

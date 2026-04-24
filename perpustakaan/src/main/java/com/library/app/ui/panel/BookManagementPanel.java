@@ -570,7 +570,7 @@ public class BookManagementPanel {
             refreshData();
             showSuccessToast("Buku berhasil dihapus.");
         } catch (Exception exception) {
-            showError(resolveErrorMessage(exception));
+            showErrorToast(resolveErrorMessage(exception));
         }
     }
 
@@ -1210,6 +1210,73 @@ public class BookManagementPanel {
         });
 
         // Mainkan animasi masuk, lalu mulai timer auto-hide
+        ptIn.setOnFinished(e -> delay.play());
+        ptIn.play();
+    }
+
+    private void showErrorToast(String message) {
+        if (root == null) return;
+
+        HBox toast = new HBox(12);
+        toast.setAlignment(Pos.CENTER_LEFT);
+        toast.setStyle(
+            "-fx-background-color: #fef2f2; " +
+            "-fx-border-color: #fecaca; " +
+            "-fx-border-width: 1; " +
+            "-fx-border-radius: 6; " +
+            "-fx-background-radius: 6; " +
+            "-fx-padding: 12 16;"
+        );
+        toast.setMaxWidth(Region.USE_PREF_SIZE);
+        toast.setMaxHeight(Region.USE_PREF_SIZE);
+
+        SVGPath errorIcon = new SVGPath();
+        errorIcon.setContent("M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z");
+        errorIcon.setStyle("-fx-fill: #ef4444;");
+
+        Label messageLabel = new Label(message);
+        messageLabel.setStyle("-fx-text-fill: #991b1b; -fx-font-size: 14px; -fx-font-weight: 500;");
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        spacer.setMinWidth(40);
+
+        Label closeBtn = new Label("✕");
+        closeBtn.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 14px; -fx-cursor: hand;");
+
+        toast.getChildren().addAll(errorIcon, messageLabel, spacer, closeBtn);
+
+        StackPane.setAlignment(toast, Pos.TOP_RIGHT);
+        StackPane.setMargin(toast, new Insets(20, 24, 0, 0));
+        root.getChildren().add(toast);
+
+        TranslateTransition slideIn = new TranslateTransition(Duration.millis(300), toast);
+        slideIn.setFromY(-40);
+        slideIn.setToY(0);
+
+        FadeTransition fadeIn = new FadeTransition(Duration.millis(300), toast);
+        fadeIn.setFromValue(0);
+        fadeIn.setToValue(1);
+
+        ParallelTransition ptIn = new ParallelTransition(slideIn, fadeIn);
+
+        TranslateTransition slideOut = new TranslateTransition(Duration.millis(300), toast);
+        slideOut.setByY(-40);
+
+        FadeTransition fadeOut = new FadeTransition(Duration.millis(300), toast);
+        fadeOut.setToValue(0);
+
+        ParallelTransition ptOut = new ParallelTransition(slideOut, fadeOut);
+        ptOut.setOnFinished(e -> root.getChildren().remove(toast));
+
+        PauseTransition delay = new PauseTransition(Duration.millis(3500));
+        delay.setOnFinished(e -> ptOut.play());
+
+        closeBtn.setOnMouseClicked(e -> {
+            delay.stop();
+            ptOut.play();
+        });
+
         ptIn.setOnFinished(e -> delay.play());
         ptIn.play();
     }

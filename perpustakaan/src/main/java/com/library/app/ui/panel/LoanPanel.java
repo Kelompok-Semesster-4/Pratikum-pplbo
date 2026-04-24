@@ -16,7 +16,7 @@ public class LoanPanel extends JPanel implements RefreshablePanel {
     private final LoanService loanService = new LoanService();
 
     private final JTextField memberCodeField = new JTextField();
-    private final JTextField copyCodeField = new JTextField();
+    private final JTextField isbnField = new JTextField();
     private final JLabel subtitleLabel = new JLabel("Data peminjaman aktif");
     private final DefaultTableModel tableModel = new DefaultTableModel(
             new Object[]{"Kode Anggota", "Nama", "Kode Eksemplar", "Judul", "Tanggal Pinjam", "Jatuh Tempo"}, 0
@@ -73,10 +73,10 @@ public class LoanPanel extends JPanel implements RefreshablePanel {
         gbc.weightx = 1;
 
         JLabel memberLabel = createFieldLabel("Kode Anggota");
-        JLabel copyLabel = createFieldLabel("Kode Eksemplar");
+        JLabel isbnLabel = createFieldLabel("ISBN Buku");
 
         styleTextField(memberCodeField, "Masukkan kode anggota");
-        styleTextField(copyCodeField, "Masukkan kode eksemplar");
+        styleTextField(isbnField, "Masukkan ISBN buku");
 
         JButton borrowButton = new JButton("Pinjam Buku");
         stylePrimaryButton(borrowButton);
@@ -87,14 +87,14 @@ public class LoanPanel extends JPanel implements RefreshablePanel {
         formCard.add(memberLabel, gbc);
 
         gbc.gridx = 1;
-        formCard.add(copyLabel, gbc);
+        formCard.add(isbnLabel, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 1;
         formCard.add(memberCodeField, gbc);
 
         gbc.gridx = 1;
-        formCard.add(copyCodeField, gbc);
+        formCard.add(isbnField, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 2;
@@ -186,12 +186,12 @@ public class LoanPanel extends JPanel implements RefreshablePanel {
         try {
             loanService.borrowBook(
                     memberCodeField.getText().trim(),
-                    copyCodeField.getText().trim()
+                    isbnField.getText().trim()
             );
 
             UiUtil.showInfo(this, "Transaksi peminjaman berhasil.");
             memberCodeField.setText("");
-            copyCodeField.setText("");
+            isbnField.setText("");
             refreshData();
         } catch (Exception exception) {
             UiUtil.showError(this, exception.getMessage());
