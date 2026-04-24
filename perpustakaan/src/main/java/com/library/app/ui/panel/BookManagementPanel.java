@@ -3,6 +3,7 @@ package com.library.app.ui.panel;
 import com.library.app.model.BookCatalogItem;
 import com.library.app.service.BookService;
 import com.library.app.ui.util.FxFeedback;
+import com.library.app.util.ValidationUtil;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
@@ -610,6 +611,7 @@ public class BookManagementPanel {
         TextField authorInput = createModalTextField("");
         TextField publisherInput = createModalTextField("");
         TextField isbnInput = createModalTextField("");
+        applyIsbnInputFilter(isbnInput);
         TextField yearInput = createModalTextField("");
         TextField copiesInput = createModalTextField("");
         copiesInput.setText("1");
@@ -684,6 +686,7 @@ public class BookManagementPanel {
         TextField authorInput = createModalTextField("", selectedBook.getAuthor());
         TextField publisherInput = createModalTextField("", selectedBook.getPublisher());
         TextField isbnInput = createModalTextField("", selectedBook.getIsbn());
+        applyIsbnInputFilter(isbnInput);
         TextField yearInput = createModalTextField("", selectedBook.getPublicationYear() <= 0
                 ? ""
                 : String.valueOf(selectedBook.getPublicationYear()));
@@ -909,6 +912,18 @@ public class BookManagementPanel {
         TextField field = createModalTextField(promptText);
         field.setText(safe(value, ""));
         return field;
+    }
+
+    private void applyIsbnInputFilter(TextField field) {
+        if (field == null) {
+            return;
+        }
+        field.textProperty().addListener((obs, oldValue, newValue) -> {
+            String filteredValue = ValidationUtil.filterIsbnInput(newValue);
+            if (!filteredValue.equals(newValue)) {
+                field.setText(filteredValue);
+            }
+        });
     }
 
     private ComboBox<String> createModalCategoryField() {

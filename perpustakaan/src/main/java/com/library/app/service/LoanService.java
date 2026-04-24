@@ -22,7 +22,11 @@ public class LoanService {
     private final MemberService memberService = new MemberService();
 
     public Loan borrowBook(String memberCode, String isbn) {
-        ValidationUtil.requireNotBlank(isbn, "ISBN wajib diisi.");
+        ValidationUtil.requireIsbnCharacters(
+                isbn,
+                "ISBN wajib diisi.",
+                "ISBN hanya boleh berisi angka dan tanda hubung (-)."
+        );
         Member member = memberService.findByCode(memberCode);
         String sanitizedIsbn = isbn.trim();
 

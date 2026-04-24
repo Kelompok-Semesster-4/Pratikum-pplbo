@@ -9,6 +9,7 @@ import com.library.app.service.LoanService;
 import com.library.app.service.VisitService;
 import com.library.app.ui.util.FxFeedback;
 import com.library.app.util.DateUtil;
+import com.library.app.util.ValidationUtil;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -1082,6 +1083,7 @@ public class LoanManagementPanel {
     private StackPane buildBorrowModal() {
         TextField memberCodeInput = createModalTextField("Masukkan kode anggota");
         TextField isbnInput = createModalTextField("Masukkan ISBN buku");
+        applyIsbnInputFilter(isbnInput);
         HBox errorToast = createModalInlineErrorToast();
         Label errorMessageLabel = (Label) errorToast.getProperties().get("messageLabel");
 
@@ -1286,6 +1288,18 @@ public class LoanManagementPanel {
         field.setPrefHeight(44);
         field.setMaxWidth(Double.MAX_VALUE);
         return field;
+    }
+
+    private void applyIsbnInputFilter(TextField field) {
+        if (field == null) {
+            return;
+        }
+        field.textProperty().addListener((obs, oldValue, newValue) -> {
+            String filteredValue = ValidationUtil.filterIsbnInput(newValue);
+            if (!filteredValue.equals(newValue)) {
+                field.setText(filteredValue);
+            }
+        });
     }
 
     private VBox buildModalField(String labelText, Node inputControl) {

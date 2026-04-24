@@ -3,6 +3,7 @@ package com.library.app.ui.panel;
 import com.library.app.model.Member;
 import com.library.app.service.MemberService;
 import com.library.app.service.ProcurementService;
+import com.library.app.util.ValidationUtil;
 import javafx.animation.FadeTransition;
 import javafx.animation.PauseTransition;
 import javafx.animation.ParallelTransition;
@@ -158,6 +159,7 @@ public class KioskProcurementFxPanel {
         publisherField = createField("Opsional");
         publicationYearField = createField("Opsional");
         isbnField = createField("10 atau 13 digit, opsional");
+        applyIsbnInputFilter(isbnField);
         reasonArea = createArea("Jelaskan alasan buku ini dibutuhkan");
 
         grid.add(memberBlock, 0, 0);
@@ -298,6 +300,18 @@ public class KioskProcurementFxPanel {
         area.setWrapText(true);
         area.getStyleClass().addAll("visit-input", "procurement-input", "procurement-reason-area");
         return area;
+    }
+
+    private void applyIsbnInputFilter(TextField field) {
+        if (field == null) {
+            return;
+        }
+        field.textProperty().addListener((obs, oldValue, newValue) -> {
+            String filteredValue = ValidationUtil.filterIsbnInput(newValue);
+            if (!filteredValue.equals(newValue)) {
+                field.setText(filteredValue);
+            }
+        });
     }
 
     private void showInlineToast(HBox toast,

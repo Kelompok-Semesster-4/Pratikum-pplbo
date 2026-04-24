@@ -101,6 +101,10 @@ public class ProcurementService {
         if (ValidationUtil.isBlank(isbn)) {
             return;
         }
+        ValidationUtil.requireOptionalIsbnCharacters(
+                isbn,
+                "ISBN hanya boleh berisi angka dan tanda hubung (-)."
+        );
         String normalized = isbn.replaceAll("[-\\s]", "");
         if (!normalized.matches("\\d{10}|\\d{13}")) {
             throw new IllegalArgumentException("ISBN harus 10 atau 13 digit.");

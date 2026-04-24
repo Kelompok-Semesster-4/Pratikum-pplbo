@@ -5,8 +5,13 @@ import com.library.app.model.Loan;
 import com.library.app.service.LoanService;
 import com.library.app.util.DateUtil;
 import com.library.app.util.UiUtil;
+import com.library.app.util.ValidationUtil;
 
 import javax.swing.*;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DocumentFilter;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -77,6 +82,7 @@ public class LoanPanel extends JPanel implements RefreshablePanel {
 
         styleTextField(memberCodeField, "Masukkan kode anggota");
         styleTextField(isbnField, "Masukkan ISBN buku");
+        applyIsbnInputFilter(isbnField);
 
         JButton borrowButton = new JButton("Pinjam Buku");
         stylePrimaryButton(borrowButton);
@@ -172,6 +178,23 @@ public class LoanPanel extends JPanel implements RefreshablePanel {
                 BorderFactory.createEmptyBorder(8, 10, 8, 10)
         ));
         field.setBackground(Color.WHITE);
+    }
+
+    private void applyIsbnInputFilter(JTextField field) {
+        if (!(field.getDocument() instanceof AbstractDocument document)) {
+            return;
+        }
+        document.setDocumentFilter(new DocumentFilter() {
+            @Override
+            public void insertString(FilterBypass fb, int offset, String string, AttributeSet attr) throws BadLocationException {
+                super.insertString(fb, offset, ValidationUtil.filterIsbnInput(string), attr);
+            }
+
+            @Override
+            public void replace(FilterBypass fb, int offset, int length, String text, AttributeSet attrs) throws BadLocationException {
+                super.replace(fb, offset, length, ValidationUtil.filterIsbnInput(text), attrs);
+            }
+        });
     }
 
     private void stylePrimaryButton(JButton button) {

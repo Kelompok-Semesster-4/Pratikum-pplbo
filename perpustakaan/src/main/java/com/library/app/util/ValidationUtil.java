@@ -3,6 +3,8 @@ package com.library.app.util;
 import java.time.Year;
 
 public final class ValidationUtil {
+    private static final String ISBN_ALLOWED_REGEX = "[0-9-]+";
+
     private ValidationUtil() {
     }
 
@@ -40,6 +42,29 @@ public final class ValidationUtil {
     public static void requirePositive(int number, String message) {
         if (number <= 0) {
             throw new IllegalArgumentException(message);
+        }
+    }
+
+    public static String filterIsbnInput(String value) {
+        if (value == null || value.isEmpty()) {
+            return "";
+        }
+        return value.replaceAll("[^0-9-]", "");
+    }
+
+    public static void requireIsbnCharacters(String value, String requiredMessage, String invalidMessage) {
+        requireNotBlank(value, requiredMessage);
+        if (!value.trim().matches(ISBN_ALLOWED_REGEX)) {
+            throw new IllegalArgumentException(invalidMessage);
+        }
+    }
+
+    public static void requireOptionalIsbnCharacters(String value, String invalidMessage) {
+        if (isBlank(value)) {
+            return;
+        }
+        if (!value.trim().matches(ISBN_ALLOWED_REGEX)) {
+            throw new IllegalArgumentException(invalidMessage);
         }
     }
 }

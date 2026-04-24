@@ -176,6 +176,7 @@ public final class DatabaseInitializer {
             ensureColumnExists(connection, "procurement_requests", "publication_year", "ALTER TABLE procurement_requests ADD COLUMN publication_year INT NULL AFTER publisher");
             ensureColumnExists(connection, "procurement_requests", "isbn", "ALTER TABLE procurement_requests ADD COLUMN isbn VARCHAR(30) NULL AFTER publication_year");
             ensureColumnExists(connection, "books", "cover_url", "ALTER TABLE books ADD COLUMN cover_url VARCHAR(500) NULL AFTER shelf_code");
+            ensureIsbnValidationTriggers(connection);
         } catch (SQLException exception) {
             throw new IllegalStateException("Gagal memperbarui struktur tabel database.", exception);
         }
@@ -190,6 +191,71 @@ public final class DatabaseInitializer {
                     WHERE visit_status = 'DI_DALAM'
                       AND visit_date < CURDATE()
                     """);
+        }
+    }
+
+    private static void ensureIsbnValidationTriggers(Connection connection) throws SQLException {
+        recreateTrigger(connection, "books_isbn_before_insert", """
+                CREATE TRIGGER books_isbn_before_insert
+                BEFORE INSERT ON books
+                FOR EACH ROW
+                BEGIN
+                    SET NEW.isbn = TRIM(NEW.isbn);
+                    IF NEW.isbn IS NULL OR NEW.isbn = '' THEN
+                        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'ISBN wajib diisi.';
+                    ELSEIF NEW.isbn REGEXP '[^0-9-]' THEN
+                        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'ISBN hanya boleh berisi angka dan tanda hubung (-).';
+                    END IF;
+                END
+                """);
+
+        recreateTrigger(connection, "books_isbn_before_update", """
+                CREATE TRIGGER books_isbn_before_update
+                BEFORE UPDATE ON books
+                FOR EACH ROW
+                BEGIN
+                    SET NEW.isbn = TRIM(NEW.isbn);
+                    IF NEW.isbn IS NULL OR NEW.isbn = '' THEN
+                        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'ISBN wajib diisi.';
+                    ELSEIF NEW.isbn REGEXP '[^0-9-]' THEN
+                        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'ISBN hanya boleh berisi angka dan tanda hubung (-).';
+                    END IF;
+                END
+                """);
+
+        recreateTrigger(connection, "procurement_requests_isbn_before_insert", """
+                CREATE TRIGGER procurement_requests_isbn_before_insert
+                BEFORE INSERT ON procurement_requests
+                FOR EACH ROW
+                BEGIN
+                    IF NEW.isbn IS NOT NULL THEN
+                        SET NEW.isbn = NULLIF(TRIM(NEW.isbn), '');
+                    END IF;
+                    IF NEW.isbn IS NOT NULL AND NEW.isbn REGEXP '[^0-9-]' THEN
+                        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'ISBN hanya boleh berisi angka dan tanda hubung (-).';
+                    END IF;
+                END
+                """);
+
+        recreateTrigger(connection, "procurement_requests_isbn_before_update", """
+                CREATE TRIGGER procurement_requests_isbn_before_update
+                BEFORE UPDATE ON procurement_requests
+                FOR EACH ROW
+                BEGIN
+                    IF NEW.isbn IS NOT NULL THEN
+                        SET NEW.isbn = NULLIF(TRIM(NEW.isbn), '');
+                    END IF;
+                    IF NEW.isbn IS NOT NULL AND NEW.isbn REGEXP '[^0-9-]' THEN
+                        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'ISBN hanya boleh berisi angka dan tanda hubung (-).';
+                    END IF;
+                END
+                """);
+    }
+
+    private static void recreateTrigger(Connection connection, String triggerName, String createSql) throws SQLException {
+        try (Statement statement = connection.createStatement()) {
+            statement.executeUpdate("DROP TRIGGER IF EXISTS " + triggerName);
+            statement.executeUpdate(createSql);
         }
     }
 

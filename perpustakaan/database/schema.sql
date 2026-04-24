@@ -87,6 +87,9 @@ CREATE TABLE IF NOT EXISTS procurement_requests (
     requester_name VARCHAR(100) NOT NULL,
     title VARCHAR(200) NOT NULL,
     author VARCHAR(150),
+    publisher VARCHAR(150),
+    publication_year INT NULL,
+    isbn VARCHAR(30) NULL,
     note TEXT,
     status VARCHAR(20) NOT NULL,
     response_note TEXT,
@@ -107,3 +110,60 @@ CREATE TABLE IF NOT EXISTS notifications (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     read_at TIMESTAMP NULL
 );
+
+DROP TRIGGER IF EXISTS books_isbn_before_insert;
+DROP TRIGGER IF EXISTS books_isbn_before_update;
+DROP TRIGGER IF EXISTS procurement_requests_isbn_before_insert;
+DROP TRIGGER IF EXISTS procurement_requests_isbn_before_update;
+
+DELIMITER $$
+
+CREATE TRIGGER books_isbn_before_insert
+BEFORE INSERT ON books
+FOR EACH ROW
+BEGIN
+    SET NEW.isbn = TRIM(NEW.isbn);
+    IF NEW.isbn IS NULL OR NEW.isbn = '' THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'ISBN wajib diisi.';
+    ELSEIF NEW.isbn REGEXP '[^0-9-]' THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'ISBN hanya boleh berisi angka dan tanda hubung (-).';
+    END IF;
+END$$
+
+CREATE TRIGGER books_isbn_before_update
+BEFORE UPDATE ON books
+FOR EACH ROW
+BEGIN
+    SET NEW.isbn = TRIM(NEW.isbn);
+    IF NEW.isbn IS NULL OR NEW.isbn = '' THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'ISBN wajib diisi.';
+    ELSEIF NEW.isbn REGEXP '[^0-9-]' THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'ISBN hanya boleh berisi angka dan tanda hubung (-).';
+    END IF;
+END$$
+
+CREATE TRIGGER procurement_requests_isbn_before_insert
+BEFORE INSERT ON procurement_requests
+FOR EACH ROW
+BEGIN
+    IF NEW.isbn IS NOT NULL THEN
+        SET NEW.isbn = NULLIF(TRIM(NEW.isbn), '');
+    END IF;
+    IF NEW.isbn IS NOT NULL AND NEW.isbn REGEXP '[^0-9-]' THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'ISBN hanya boleh berisi angka dan tanda hubung (-).';
+    END IF;
+END$$
+
+CREATE TRIGGER procurement_requests_isbn_before_update
+BEFORE UPDATE ON procurement_requests
+FOR EACH ROW
+BEGIN
+    IF NEW.isbn IS NOT NULL THEN
+        SET NEW.isbn = NULLIF(TRIM(NEW.isbn), '');
+    END IF;
+    IF NEW.isbn IS NOT NULL AND NEW.isbn REGEXP '[^0-9-]' THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'ISBN hanya boleh berisi angka dan tanda hubung (-).';
+    END IF;
+END$$
+
+DELIMITER ;

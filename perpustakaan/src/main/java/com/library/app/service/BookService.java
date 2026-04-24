@@ -16,7 +16,11 @@ public class BookService {
 
     public Book addBook(String isbn, String title, String author, String publisher,
                         int publicationYear, String category, String shelfCode, String coverUrl, int totalCopies) {
-        ValidationUtil.requireNotBlank(isbn, "ISBN wajib diisi.");
+        ValidationUtil.requireIsbnCharacters(
+                isbn,
+                "ISBN wajib diisi.",
+                "ISBN hanya boleh berisi angka dan tanda hubung (-)."
+        );
         ValidationUtil.requireNotBlank(title, "Judul buku wajib diisi.");
         ValidationUtil.requireNotBlank(author, "Penulis wajib diisi.");
         ValidationUtil.requirePublicationYear(publicationYear);
@@ -45,7 +49,11 @@ public class BookService {
         if (bookId <= 0) {
             throw new IllegalArgumentException("Data buku tidak valid.");
         }
-        ValidationUtil.requireNotBlank(isbn, "ISBN wajib diisi.");
+        ValidationUtil.requireIsbnCharacters(
+                isbn,
+                "ISBN wajib diisi.",
+                "ISBN hanya boleh berisi angka dan tanda hubung (-)."
+        );
         ValidationUtil.requireNotBlank(title, "Judul buku wajib diisi.");
         ValidationUtil.requireNotBlank(author, "Penulis wajib diisi.");
         ValidationUtil.requirePublicationYear(publicationYear);

@@ -85,6 +85,7 @@ com\library\app\ui\panel\MemberManagementPanel$5.class
 com\library\app\ui\panel\MemberManagementPanel$8.class
 com\library\app\ui\panel\ReportPanel$3.class
 com\library\app\util\UiUtil.class
+com\library\app\ui\panel\LoanPanel$2.class
 com\library\app\service\VisitService.class
 com\library\app\dao\VisitDAO.class
 com\library\app\session\UserSession.class
