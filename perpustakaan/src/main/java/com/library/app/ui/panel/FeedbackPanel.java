@@ -37,7 +37,7 @@ public class FeedbackPanel extends JPanel implements RefreshablePanel {
 
         top.add(new JLabel("Kode Anggota (opsional)"));
         top.add(memberCodeField);
-        top.add(new JLabel("Nama Pengirim"));
+        top.add(new JLabel("Nama Pengirim (opsional)"));
         top.add(senderNameField);
 
         panel.add(top, BorderLayout.NORTH);
