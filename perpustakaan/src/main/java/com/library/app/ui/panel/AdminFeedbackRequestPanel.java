@@ -51,6 +51,7 @@ public class AdminFeedbackRequestPanel {
     private final VBox detailContainer = new VBox();
     private VBox leftPane;
     private ScrollPane listScrollPane;
+    private ScrollPane detailScrollPane;
     private final Button feedbackTabButton = new Button();
     private final Button procurementTabButton = new Button();
     private final Label sectionTitle = new Label();
@@ -145,7 +146,7 @@ public class AdminFeedbackRequestPanel {
     private Node buildBodyArea() {
         HBox content = new HBox(18);
         content.setAlignment(Pos.TOP_LEFT);
-        content.setFillHeight(false);
+        content.setFillHeight(true);
         content.setMaxWidth(Double.MAX_VALUE);
 
         leftPane = new VBox(14);
@@ -156,6 +157,7 @@ public class AdminFeedbackRequestPanel {
         leftPane.setFillWidth(true);
         leftPane.setMinHeight(Region.USE_PREF_SIZE);
         leftPane.setPrefHeight(Region.USE_COMPUTED_SIZE);
+        leftPane.setMaxHeight(Region.USE_PREF_SIZE);
 
         sectionTitle.setStyle("-fx-font-size: 19px; -fx-font-weight: 800; -fx-text-fill: #0F172A;");
         sectionSubtitle.setStyle("-fx-font-size: 12px; -fx-text-fill: #64748B;");
@@ -177,14 +179,22 @@ public class AdminFeedbackRequestPanel {
         detailContainer.setFillWidth(true);
         detailContainer.setMinHeight(Region.USE_PREF_SIZE);
         detailContainer.setPrefHeight(Region.USE_COMPUTED_SIZE);
-        HBox.setHgrow(detailContainer, Priority.ALWAYS);
 
-        leftPane.prefHeightProperty().bind(detailContainer.heightProperty());
-        leftPane.minHeightProperty().bind(detailContainer.heightProperty());
+        detailScrollPane = new ScrollPane(detailContainer);
+        detailScrollPane.getStyleClass().add("app-scroll");
+        detailScrollPane.setFitToWidth(true);
+        detailScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        detailScrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        detailScrollPane.setStyle("-fx-background-color: transparent; -fx-background-insets: 0;");
+        HBox.setHgrow(detailScrollPane, Priority.ALWAYS);
+
+        leftPane.prefHeightProperty().bind(detailScrollPane.heightProperty());
+        leftPane.minHeightProperty().bind(detailScrollPane.heightProperty());
+        leftPane.maxHeightProperty().bind(detailScrollPane.heightProperty());
         listScrollPane.prefViewportHeightProperty()
-                .bind(Bindings.max(180.0, detailContainer.heightProperty().subtract(130.0)));
+                .bind(Bindings.max(180.0, detailScrollPane.heightProperty().subtract(130.0)));
 
-        content.getChildren().addAll(leftPane, detailContainer);
+        content.getChildren().addAll(leftPane, detailScrollPane);
         return content;
     }
 
@@ -231,7 +241,7 @@ public class AdminFeedbackRequestPanel {
 
     private void renderBody() {
         if (activeTab == TabType.FEEDBACK) {
-            applyDetailContainerHeight(FEEDBACK_DETAIL_BASELINE_HEIGHT);
+            applyFeedbackDetailHeight();
             sectionTitle.setText("Daftar Feedback");
             sectionSubtitle.setText(feedbacks.isEmpty()
                     ? "Belum ada feedback dari pengguna kiosk."
@@ -251,8 +261,25 @@ public class AdminFeedbackRequestPanel {
     }
 
     private void applyDetailContainerHeight(double baselineHeight) {
-        detailContainer.setMinHeight(baselineHeight);
-        detailContainer.setPrefHeight(baselineHeight);
+        if (detailScrollPane != null) {
+            detailScrollPane.setMinHeight(baselineHeight);
+            detailScrollPane.setPrefHeight(baselineHeight);
+        }
+    }
+
+    private void applyFeedbackDetailHeight() {
+        if (detailScrollPane == null) {
+            return;
+        }
+
+        if (selectedFeedback == null) {
+            applyDetailContainerHeight(FEEDBACK_DETAIL_BASELINE_HEIGHT);
+            return;
+        }
+
+        double estimatedHeight = estimateFeedbackDetailHeight(selectedFeedback);
+        detailScrollPane.setMinHeight(estimatedHeight);
+        detailScrollPane.setPrefHeight(estimatedHeight);
     }
 
     private void renderFeedbackList() {
@@ -325,7 +352,11 @@ public class AdminFeedbackRequestPanel {
 
         Label heading = new Label(safeText(selectedFeedback.getSubject(), "Feedback Tanpa Judul"));
         heading.setWrapText(true);
+        heading.setMaxWidth(Double.MAX_VALUE);
         heading.setStyle("-fx-font-size: 24px; -fx-font-weight: 800; -fx-text-fill: #0F172A;");
+
+        HBox inlineErrorToast = createInlineDetailErrorToast();
+        Label inlineErrorMessage = (Label) inlineErrorToast.getProperties().get("messageLabel");
 
         FlowPane metaRow = new FlowPane();
         metaRow.setHgap(10);
@@ -345,9 +376,13 @@ public class AdminFeedbackRequestPanel {
         Label messageTitle = new Label("Isi Feedback");
         messageTitle.setStyle("-fx-font-size: 15px; -fx-font-weight: 800; -fx-text-fill: #111827;");
 
-        Label messageValue = new Label(safeText(selectedFeedback.getMessage(), "-"));
+        TextArea messageValue = new TextArea(safeText(selectedFeedback.getMessage(), "-"));
         messageValue.setWrapText(true);
-        messageValue.setStyle("-fx-font-size: 13px; -fx-text-fill: #334155;");
+        messageValue.setEditable(false);
+        messageValue.setFocusTraversable(false);
+        messageValue.setPrefRowCount(estimateFeedbackMessageRows(selectedFeedback.getMessage()));
+        messageValue.setStyle(textAreaStyle());
+        messageValue.getStyleClass().add("admin-textarea");
 
         messageCard.getChildren().addAll(messageTitle, messageValue);
 
@@ -364,6 +399,10 @@ public class AdminFeedbackRequestPanel {
         responseArea.setPrefRowCount(6);
         responseArea.setStyle(textAreaStyle());
         responseArea.getStyleClass().add("admin-textarea");
+        boolean alreadyResponded = selectedFeedback.getStatus() == FeedbackStatus.RESPONDED
+                || selectedFeedback.getRespondedAt() != null;
+        responseArea.setEditable(!alreadyResponded);
+        responseArea.setDisable(alreadyResponded);
 
         if (selectedFeedback.getRespondedAt() != null) {
             Label respondedAt = new Label("Terakhir diperbarui: " + formatDateTime(selectedFeedback.getRespondedAt()));
@@ -385,13 +424,16 @@ public class AdminFeedbackRequestPanel {
 
         Button respondButton = new Button("Simpan Respons");
         respondButton.setStyle(primaryButtonStyle());
+        respondButton.setDisable(alreadyResponded);
         respondButton.setOnAction(event -> {
             try {
+                hideInlineDetailError(inlineErrorToast, inlineErrorMessage);
                 feedbackService.respond(selectedFeedback.getId(), responseArea.getText());
+                selectedFeedback = null;
                 refreshData();
                 showInfo("Respons feedback berhasil disimpan.");
             } catch (IllegalArgumentException exception) {
-                showError(exception.getMessage());
+                showInlineDetailError(inlineErrorToast, inlineErrorMessage, exception.getMessage());
             }
         });
 
@@ -400,7 +442,10 @@ public class AdminFeedbackRequestPanel {
 
         responseCard.getChildren().addAll(responseTitle, responseArea, actionRow);
 
-        detailContainer.getChildren().addAll(heading, metaRow, timeLabel, messageCard, responseCard);
+        detailContainer.getChildren().addAll(heading, inlineErrorToast, metaRow, timeLabel, messageCard, responseCard);
+        if (detailScrollPane != null) {
+            detailScrollPane.setVvalue(0);
+        }
     }
 
     private void renderRequestList() {
@@ -471,6 +516,7 @@ public class AdminFeedbackRequestPanel {
 
         Label heading = new Label(safeText(selectedRequest.getTitle(), "Tanpa Judul"));
         heading.setWrapText(true);
+        heading.setMaxWidth(Double.MAX_VALUE);
         heading.setStyle("-fx-font-size: 24px; -fx-font-weight: 800; -fx-text-fill: #0F172A;");
 
         FlowPane metaRow = new FlowPane();
@@ -541,6 +587,9 @@ public class AdminFeedbackRequestPanel {
         reviewCard.getChildren().addAll(reviewTitle, noteArea, buttonRow);
 
         detailContainer.getChildren().addAll(heading, metaRow, detailGrid, reviewCard);
+        if (detailScrollPane != null) {
+            detailScrollPane.setVvalue(0);
+        }
     }
 
     private void reviewRequest(RequestStatus status, String responseNote) {
@@ -719,6 +768,25 @@ public class AdminFeedbackRequestPanel {
         return safe.substring(0, maxLength).trim() + "...";
     }
 
+    private double estimateFeedbackDetailHeight(Feedback feedback) {
+        if (feedback == null) {
+            return FEEDBACK_DETAIL_BASELINE_HEIGHT;
+        }
+
+        int subjectLength = safeText(feedback.getSubject(), "").length();
+        int subjectLines = Math.max(1, (int) Math.ceil(subjectLength / 40.0));
+        int messageRows = estimateFeedbackMessageRows(feedback.getMessage());
+        double estimatedHeight = 380 + (subjectLines * 24) + (messageRows * 22);
+
+        return Math.max(FEEDBACK_DETAIL_BASELINE_HEIGHT, Math.min(820, estimatedHeight));
+    }
+
+    private int estimateFeedbackMessageRows(String message) {
+        int messageLength = safeText(message, "").length();
+        int estimatedRows = Math.max(8, (int) Math.ceil(messageLength / 42.0));
+        return Math.min(16, estimatedRows);
+    }
+
     private String safeText(String value, String fallback) {
         return value == null || value.isBlank() ? fallback : value;
     }
@@ -749,11 +817,74 @@ public class AdminFeedbackRequestPanel {
         };
     }
 
+    private HBox createInlineDetailErrorToast() {
+        Label iconLabel = new Label("!");
+        iconLabel.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 13px; -fx-font-weight: 700;");
+
+        Label closeLabel = new Label("\u2715");
+        closeLabel.setStyle("-fx-text-fill: #ef4444; -fx-font-size: 13px; -fx-cursor: hand;");
+
+        Label messageLabel = new Label();
+        messageLabel.setWrapText(true);
+        messageLabel.setMaxWidth(Double.MAX_VALUE);
+        messageLabel.setStyle("-fx-text-fill: #991b1b; -fx-font-size: 12px;");
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox toast = new HBox(10, iconLabel, messageLabel, spacer, closeLabel);
+        toast.setAlignment(Pos.CENTER_LEFT);
+        toast.setVisible(false);
+        toast.setManaged(false);
+        toast.setMaxWidth(Double.MAX_VALUE);
+        toast.setStyle(
+                "-fx-background-color: #fef2f2; " +
+                        "-fx-border-color: #fecaca; " +
+                        "-fx-border-width: 1; " +
+                        "-fx-border-radius: 12; " +
+                        "-fx-background-radius: 12; " +
+                        "-fx-padding: 10 12 10 12;"
+        );
+        toast.getProperties().put("messageLabel", messageLabel);
+        closeLabel.setOnMouseClicked(event -> hideInlineDetailError(toast, messageLabel));
+        return toast;
+    }
+
+    private void showInlineDetailError(HBox toast, Label messageLabel, String message) {
+        if (toast == null || messageLabel == null) {
+            return;
+        }
+        messageLabel.setText(message == null ? "" : message);
+        toast.setManaged(true);
+        toast.setVisible(true);
+        if (detailScrollPane != null) {
+            detailScrollPane.setVvalue(0);
+        }
+    }
+
+    private void hideInlineDetailError(HBox toast, Label messageLabel) {
+        if (toast == null || messageLabel == null) {
+            return;
+        }
+        messageLabel.setText("");
+        toast.setVisible(false);
+        toast.setManaged(false);
+    }
+
     private void showInfo(String message) {
-        FxFeedback.showSuccessToastCentered(FxFeedback.resolveHost(root), message);
+        FxFeedback.showSuccessToast(
+                FxFeedback.resolveHost(root),
+                message,
+                new Insets(84, 24, 0, 0)
+        );
     }
 
     private void showError(String message) {
-        FxFeedback.showErrorToastCentered(FxFeedback.resolveHost(root), message);
+        FxFeedback.showErrorToast(
+                FxFeedback.resolveHost(root),
+                message,
+                Pos.TOP_RIGHT,
+                new Insets(84, 24, 0, 0)
+        );
     }
 }

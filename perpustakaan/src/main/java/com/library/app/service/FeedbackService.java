@@ -66,7 +66,15 @@ public class FeedbackService {
 
     public void respond(Long feedbackId, String responseNote) {
         ValidationUtil.requireNotBlank(responseNote, "Respons admin tidak boleh kosong.");
+        Feedback feedback = feedbackDAO.findById(feedbackId);
+        if (feedback == null) {
+            throw new IllegalArgumentException("Feedback tidak ditemukan.");
+        }
+        if (feedback.getStatus() == FeedbackStatus.RESPONDED || feedback.getRespondedAt() != null) {
+            throw new IllegalArgumentException("Feedback ini sudah pernah direspons.");
+        }
         feedbackDAO.respond(feedbackId, responseNote.trim());
+        GlobalEventPublisher.publishFeedbackUpdated();
     }
 
     private String normalizeSubject(String subject, String message) {

@@ -620,10 +620,19 @@ public class ReportPanel {
    }
 
    private void showInfo(String message) {
-      FxFeedback.showSuccessToastCentered(FxFeedback.resolveHost(exportButton), message);
+      FxFeedback.showSuccessToast(
+            FxFeedback.resolveHost(exportButton),
+            message,
+            new Insets(84, 24, 0, 0)
+      );
    }
 
    private void showError(String message) {
-      FxFeedback.showErrorToastCentered(FxFeedback.resolveHost(exportButton), message);
+      FxFeedback.showErrorToast(
+            FxFeedback.resolveHost(exportButton),
+            message,
+            Pos.TOP_RIGHT,
+            new Insets(84, 24, 0, 0)
+      );
    }
 }
