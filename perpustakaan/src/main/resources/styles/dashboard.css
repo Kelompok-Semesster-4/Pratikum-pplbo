@@ -325,14 +325,21 @@
 }
 
 .stat-icon {
-  -fx-min-width: 24px;
-  -fx-min-height: 24px;
-  -fx-pref-width: 24px;
-  -fx-pref-height: 24px;
+  -fx-min-width: 30px;
+  -fx-min-height: 30px;
+  -fx-pref-width: 30px;
+  -fx-pref-height: 30px;
+  -fx-max-width: 30px;
+  -fx-max-height: 30px;
   -fx-alignment: CENTER;
-  -fx-font-size: 13px;
+  -fx-font-size: 14px;
   -fx-font-weight: 700;
-  -fx-background-radius: 8;
+  -fx-background-radius: 10;
+}
+
+.stat-icon-svg {
+  -fx-scale-x: 0.8;
+  -fx-scale-y: 0.8;
 }
 
 .stat-icon.icon-blue {
@@ -340,9 +347,17 @@
   -fx-background-color: #e8f1ff;
 }
 
+.stat-icon.icon-blue .stat-icon-svg {
+  -fx-fill: #2b67d6;
+}
+
 .stat-icon.icon-green {
   -fx-text-fill: #1da56f;
   -fx-background-color: #e2f7ef;
+}
+
+.stat-icon.icon-green .stat-icon-svg {
+  -fx-fill: #1da56f;
 }
 
 .stat-icon.icon-orange {
@@ -350,9 +365,17 @@
   -fx-background-color: #fff2de;
 }
 
+.stat-icon.icon-orange .stat-icon-svg {
+  -fx-fill: #de8b1e;
+}
+
 .stat-icon.icon-purple {
   -fx-text-fill: #7a4ae0;
   -fx-background-color: #f0eafe;
+}
+
+.stat-icon.icon-purple .stat-icon-svg {
+  -fx-fill: #7a4ae0;
 }
 
 .stat-icon.icon-teal {
@@ -360,9 +383,17 @@
   -fx-background-color: #e1f7f2;
 }
 
+.stat-icon.icon-teal .stat-icon-svg {
+  -fx-fill: #149d8f;
+}
+
 .stat-icon.icon-sand {
   -fx-text-fill: #e6742d;
   -fx-background-color: #fff0e4;
+}
+
+.stat-icon.icon-sand .stat-icon-svg {
+  -fx-fill: #e6742d;
 }
 
 .stat-value {

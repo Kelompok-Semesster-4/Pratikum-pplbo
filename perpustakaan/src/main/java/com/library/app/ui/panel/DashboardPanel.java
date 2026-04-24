@@ -916,23 +916,37 @@ class AdminDashboardFxApp extends Application {
             grid.getColumnConstraints().add(constraints);
         }
 
-        grid.add(createStatCard("Total Buku", summary.getTotalBooks(), "Total judul katalog", "\uD83D\uDCD8",
-                "icon-blue"), 0, 0);
+        grid.add(createStatCard("Total Buku", summary.getTotalBooks(), "Total judul katalog",
+            createStatSvgIcon(
+                "M4 5.5h5.5A3.5 3.5 0 0 1 13 9v10a2.8 2.8 0 0 0-2.8-2.8H4zm16 0h-5.5A3.5 3.5 0 0 0 11 9v10a2.8 2.8 0 0 1 2.8-2.8H20z",
+                "icon-blue"
+            ),
+            "icon-blue"), 0, 0);
         grid.add(createStatCard("Total Anggota", summary.getTotalMembers(), "Anggota terdaftar", "\uD83D\uDC65",
                 "icon-green"), 1, 0);
         grid.add(createStatCard("Peminjaman Aktif", summary.getActiveLoans(), "Sedang dipinjam", "\u21C4",
                 "icon-orange"), 2, 0);
         grid.add(createStatCard("Kunjungan Hari Ini", summary.getVisitsToday(), "Tanggal " + LocalDate.now(),
-                "\uD83E\uDDD1", "icon-purple"), 3, 0);
+            createStatSvgIcon(
+                "M12 5a3 3 0 1 1 0 6a3 3 0 0 1 0-6zm0 7.8c-3.1 0-5.8 1.54-7.46 3.88c-.38.53-.18 1.27.4 1.56A15.77 15.77 0 0 0 12 20c2.52 0 4.93-.58 7.06-1.76c.58-.29.78-1.03.4-1.56C17.8 14.34 15.1 12.8 12 12.8z",
+                "icon-purple"
+            ), "icon-purple"), 3, 0);
         grid.add(createStatCard("Buku Tersedia", summary.getAvailableCopies(),
                 "Dari " + summary.getTotalCopies() + " eksemplar", "\u2705", "icon-teal"), 4, 0);
-        grid.add(createStatCard("Permintaan Pending", summary.getPendingRequests(), "Perlu ditinjau", "\uD83D\uDCE5",
-                "icon-sand"), 5, 0);
+        grid.add(createStatCard("Permintaan Pending", summary.getPendingRequests(), "Perlu ditinjau",
+            createStatSvgIcon(
+                "M5 6h14a1.5 1.5 0 0 1 1.5 1.5v9A1.5 1.5 0 0 1 19 18H5a1.5 1.5 0 0 1-1.5-1.5v-9A1.5 1.5 0 0 1 5 6zm0 2.2v.8l7 4.9l7-4.9v-.8zm14 8v-5l-6.43 4.5a1 1 0 0 1-1.14 0L5 11.2v5z",
+                "icon-sand"
+            ), "icon-sand"), 5, 0);
 
         return grid;
     }
 
     private Node createStatCard(String title, int value, String helperText, String iconText, String iconVariant) {
+        return createStatCard(title, value, helperText, createStatTextIcon(iconText, iconVariant), iconVariant);
+    }
+
+    private Node createStatCard(String title, int value, String helperText, Node iconNode, String iconVariant) {
         VBox card = new VBox(8);
         card.getStyleClass().add("stat-card");
         card.setPadding(new Insets(14));
@@ -941,9 +955,6 @@ class AdminDashboardFxApp extends Application {
         card.setMaxWidth(Double.MAX_VALUE);
         GridPane.setFillWidth(card, true);
         GridPane.setHgrow(card, Priority.ALWAYS);
-
-        Label icon = new Label(iconText);
-        icon.getStyleClass().addAll("stat-icon", iconVariant);
 
         Label titleLabel = new Label(title);
         titleLabel.getStyleClass().add("stat-title");
@@ -954,8 +965,24 @@ class AdminDashboardFxApp extends Application {
         Label helperLabel = new Label(helperText);
         helperLabel.getStyleClass().add("stat-helper");
 
-        card.getChildren().addAll(icon, titleLabel, valueLabel, helperLabel);
+        card.getChildren().addAll(iconNode, titleLabel, valueLabel, helperLabel);
         return card;
+    }
+
+    private Node createStatTextIcon(String iconText, String iconVariant) {
+        Label icon = new Label(iconText);
+        icon.getStyleClass().addAll("stat-icon", iconVariant);
+        return icon;
+    }
+
+    private Node createStatSvgIcon(String pathData, String iconVariant) {
+        SVGPath icon = new SVGPath();
+        icon.setContent(pathData);
+        icon.getStyleClass().add("stat-icon-svg");
+
+        StackPane wrapper = new StackPane(icon);
+        wrapper.getStyleClass().addAll("stat-icon", iconVariant);
+        return wrapper;
     }
 
     private Node createChartRow(Map<String, Integer> visitsPerMonth, Map<String, int[]> loanTrend) {
