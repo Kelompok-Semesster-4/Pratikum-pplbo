@@ -39,7 +39,7 @@ public class LoginFrame {
 
         // Kartu Login (Kiri: Info, Kanan: Form)
         HBox mainCard = new HBox();
-        mainCard.setMaxSize(850, 500);
+        mainCard.setMaxSize(960, 560);
         mainCard.getStyleClass().add("login-card");
 
         mainCard.getChildren().addAll(createLeftPanel(), createRightPanel());
@@ -67,32 +67,43 @@ public class LoginFrame {
 
     // --- PANEL KIRI (Branding & Fitur) ---
     private VBox createLeftPanel() {
-        VBox leftPanel = new VBox(20);
+        VBox leftPanel = new VBox(22);
         leftPanel.getStyleClass().add("left-panel");
-        leftPanel.setPrefWidth(400);
-        leftPanel.setPadding(new Insets(40));
+        leftPanel.setPrefWidth(460);
+        leftPanel.setPadding(new Insets(42));
 
-        // Header dengan LOGO BUKU KOTAK (Sinkron dengan KioskFrame)
-        HBox brandBox = new HBox(12, createLibraryLogo(28), new Label("Sistem Manajemen\nPerpustakaan"));
+        Label brandTitle = new Label("Sistem Manajemen");
+        brandTitle.getStyleClass().add("brand-title");
+        Label brandSubtitle = new Label("Perpustakaan");
+        brandSubtitle.getStyleClass().add("brand-subtitle");
+        VBox brandText = new VBox(1, brandTitle, brandSubtitle);
+        brandText.setAlignment(Pos.CENTER_LEFT);
+
+        // Header dengan logo buku kotak
+        HBox brandBox = new HBox(12, createLibraryLogo(26), brandText);
         brandBox.getStyleClass().add("brand-box");
         brandBox.setAlignment(Pos.CENTER_LEFT);
 
         Label welcomeTitle = new Label("Selamat Datang di\nSistem Perpustakaan");
         welcomeTitle.getStyleClass().add("welcome-title");
+        welcomeTitle.setWrapText(true);
+        welcomeTitle.setMaxWidth(Double.MAX_VALUE);
 
         Label welcomeDesc = new Label("Platform manajemen perpustakaan terpadu untuk pengelolaan buku, anggota, peminjaman, dan laporan operasional.");
         welcomeDesc.getStyleClass().add("welcome-desc");
         welcomeDesc.setWrapText(true);
+        welcomeDesc.setMaxWidth(Double.MAX_VALUE);
 
-        // Daftar Fitur dengan Icon SVG
-        VBox featureList = new VBox(15);
+        // Daftar fitur dengan ikon SVG
+        VBox featureList = new VBox(14);
+        featureList.getStyleClass().add("feature-list");
         featureList.getChildren().addAll(
-                createFeatureItem("M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5", "Manajemen koleksi buku & eksemplar"),
-                createFeatureItem("M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", "Pengelolaan anggota & kunjungan"),
-                createFeatureItem("M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15", "Peminjaman & pengembalian otomatis"),
-                createFeatureItem("M18 20V10M12 20V4M6 20v-6", "Laporan & statistik lengkap")
+                createFeatureItem("M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5", "Kelola koleksi buku dan eksemplar"),
+                createFeatureItem("M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", "Pantau anggota dan kunjungan"),
+                createFeatureItem("M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15", "Proses peminjaman lebih cepat"),
+                createFeatureItem("M18 20V10M12 20V4M6 20v-6", "Lihat laporan dan statistik")
         );
-        VBox.setMargin(featureList, new Insets(20, 0, 0, 0));
+        VBox.setMargin(featureList, new Insets(10, 0, 0, 0));
 
         leftPanel.getChildren().addAll(brandBox, welcomeTitle, welcomeDesc, featureList);
         return leftPanel;
@@ -101,7 +112,11 @@ public class LoginFrame {
     private HBox createFeatureItem(String svgPath, String text) {
         Label label = new Label(text);
         label.getStyleClass().add("feature-text");
-        HBox box = new HBox(12, createIcon(svgPath, Color.web("#93C5FD")), label);
+        label.setWrapText(true);
+        HBox.setHgrow(label, Priority.ALWAYS);
+
+        HBox box = new HBox(12, createFeatureIcon(svgPath), label);
+        box.getStyleClass().add("feature-item");
         box.setAlignment(Pos.CENTER_LEFT);
         return box;
     }
@@ -128,7 +143,7 @@ public class LoginFrame {
         userField.setPromptText("Masukkan username");
         userField.getStyleClass().add("transparent-input");
         HBox.setHgrow(userField, Priority.ALWAYS);
-        HBox userBox = new HBox(10, createIcon("M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", Color.web("#9CA3AF")), userField);
+        HBox userBox = new HBox(10, createIcon("M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", Color.web("#6B7280")), userField);
         userBox.getStyleClass().add("input-group");
         userBox.setAlignment(Pos.CENTER_LEFT);
 
@@ -139,7 +154,7 @@ public class LoginFrame {
         passField.setPromptText("Masukkan password");
         passField.getStyleClass().add("transparent-input");
         HBox.setHgrow(passField, Priority.ALWAYS);
-        HBox passBox = new HBox(10, createIcon("M19 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2zm-7 6v-2M7 11V7a5 5 0 0 1 10 0v4", Color.web("#9CA3AF")), passField);
+        HBox passBox = new HBox(10, createIcon("M19 11H5a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2zm-7 6v-2M7 11V7a5 5 0 0 1 10 0v4", Color.web("#6B7280")), passField);
         passBox.getStyleClass().add("input-group");
         passBox.setAlignment(Pos.CENTER_LEFT);
 
@@ -201,32 +216,57 @@ public class LoginFrame {
         double bookHeight = size * 0.62;
 
         Rectangle leftBook = new Rectangle(bookWidth, bookHeight);
-        leftBook.setArcWidth(8); leftBook.setArcHeight(8);
-        leftBook.setFill(Color.web("#E2E8F0")); 
+        leftBook.setArcWidth(8);
+        leftBook.setArcHeight(8);
+        leftBook.setFill(Color.web("#DBEAFE"));
         leftBook.setTranslateX(-bookWidth * 0.34);
 
         Rectangle rightBook = new Rectangle(bookWidth, bookHeight);
-        rightBook.setArcWidth(8); rightBook.setArcHeight(8);
+        rightBook.setArcWidth(8);
+        rightBook.setArcHeight(8);
         rightBook.setFill(Color.web("#60A5FA"));
         rightBook.setTranslateX(bookWidth * 0.34);
 
         Rectangle spine = new Rectangle(size * 0.12, bookHeight);
-        spine.setArcWidth(6); spine.setArcHeight(6);
+        spine.setArcWidth(6);
+        spine.setArcHeight(6);
         spine.setFill(Color.web("#FFFFFF"));
         
         StackPane icon = new StackPane(leftBook, rightBook, spine);
+        icon.getStyleClass().add("brand-logo");
         icon.setPrefSize(size, size * 0.8);
         return icon;
     }
 
-    private Group createIcon(String pathData, Color color) {
+    private Node createFeatureIcon(String pathData) {
+        StackPane shell = new StackPane(createIcon(pathData, Color.web("#BFDBFE"), 18, 1.55));
+        shell.getStyleClass().add("feature-icon-shell");
+        return shell;
+    }
+
+    private Node createIcon(String pathData, Color color) {
+        return createIcon(pathData, color, 20, 1.6);
+    }
+
+    private Node createIcon(String pathData, Color color, double iconSize, double strokeWidth) {
         SVGPath path = new SVGPath();
         path.setContent(pathData);
         path.setStroke(color);
-        path.setStrokeWidth(1.5);
+        path.setStrokeWidth(strokeWidth);
         path.setFill(Color.TRANSPARENT);
         path.setStrokeLineCap(StrokeLineCap.ROUND);
         path.setStrokeLineJoin(StrokeLineJoin.ROUND);
-        return new Group(path);
+
+        Group iconGraphic = new Group(path);
+        double scale = iconSize / 24;
+        iconGraphic.setScaleX(scale);
+        iconGraphic.setScaleY(scale);
+
+        StackPane icon = new StackPane(iconGraphic);
+        icon.getStyleClass().add("line-icon");
+        icon.setMinSize(iconSize, iconSize);
+        icon.setPrefSize(iconSize, iconSize);
+        icon.setMaxSize(iconSize, iconSize);
+        return icon;
     }
 }
