@@ -96,11 +96,14 @@ public class ReportPanel {
       header.getChildren().addAll(titleBox, spacer, exportButton);
 
       VBox body = new VBox(16);
+      VBox tableCard = createTableCard();
+      VBox.setVgrow(tableCard, Priority.ALWAYS);
       body.getChildren().addAll(
             createStatCards(),
             createChartRow(),
-            createTableCard());
+            tableCard);
       body.setPadding(new Insets(0, 0, 0, 0));
+      VBox.setVgrow(body, Priority.ALWAYS);
 
       content.getChildren().addAll(header, body);
 
@@ -137,7 +140,6 @@ public class ReportPanel {
       loanTrendChartHost.getChildren().setAll(loanTrendChart, loanTrendLabelLayer);
       Platform.runLater(() -> installBarValueLabels(loanTrendChart, loanTrendLabelLayer));
       overdueItems.setAll(overdueRows);
-      adjustTableHeight(overdueRows.size());
    }
 
    private Node createStatCards() {
@@ -262,9 +264,8 @@ public class ReportPanel {
       overdueTable.getStyleClass().add("report-overdue-table");
       overdueTable.setItems(overdueItems);
       overdueTable.setFixedCellSize(TABLE_ROW_HEIGHT);
-      overdueTable.setMinHeight(0);
-      overdueTable.setPrefHeight(TABLE_EMPTY_HEIGHT);
-      overdueTable.setMaxHeight(Region.USE_PREF_SIZE);
+      overdueTable.setPlaceholder(new Label("Tidak ada data peminjaman terlambat."));
+      VBox.setVgrow(overdueTable, Priority.ALWAYS);
       overdueTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
       TableColumn<OverdueLoanReportItem, OverdueLoanReportItem> borrowerColumn = new TableColumn<>("PEMINJAM");
@@ -545,41 +546,7 @@ public class ReportPanel {
       axis.setLabel(null);
    }
 
-   private void adjustTableHeight(int rowCount) {
-      if (overdueTable == null) {
-         return;
-      }
 
-      Platform.runLater(() -> {
-         if (overdueTable.getScene() == null) {
-            return;
-         }
-
-         overdueTable.applyCss();
-         overdueTable.layout();
-
-         if (rowCount <= 0) {
-            overdueTable.setPlaceholder(new Label("Tidak ada data peminjaman terlambat."));
-            overdueTable.setPrefHeight(TABLE_EMPTY_HEIGHT);
-            overdueTable.setMinHeight(TABLE_EMPTY_HEIGHT);
-            overdueTable.setMaxHeight(TABLE_EMPTY_HEIGHT);
-            return;
-         }
-
-         overdueTable.setPlaceholder(new Label(""));
-         double headerHeight = 34.0;
-         Node headerNode = overdueTable.lookup(".column-header-background");
-         if (headerNode != null) {
-            headerHeight = headerNode.prefHeight(-1);
-         }
-
-         double calculatedHeight = headerHeight + (rowCount * TABLE_ROW_HEIGHT) + 4.0;
-         double finalHeight = Math.max(calculatedHeight, TABLE_EMPTY_HEIGHT);
-         overdueTable.setPrefHeight(finalHeight);
-         overdueTable.setMinHeight(finalHeight);
-         overdueTable.setMaxHeight(finalHeight);
-      });
-   }
 
    private String formatNumber(int value) {
       return String.format(ID_LOCALE, "%d", value);
